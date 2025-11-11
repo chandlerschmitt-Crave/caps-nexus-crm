@@ -2,7 +2,17 @@ import { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
-import { Briefcase, Building2, FolderKanban, Home, TrendingUp } from 'lucide-react';
+import { Briefcase, Building2, FolderKanban, Home, TrendingUp, DollarSign, Users, PieChart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+
+interface InvestorDeal {
+  id: string;
+  name: string;
+  amount_target: number;
+  close_date: string | null;
+  instrument: string;
+  account: { name: string } | null;
+}
 
 export default function Dashboard() {
   const [stats, setStats] = useState({
@@ -12,9 +22,16 @@ export default function Dashboard() {
     properties: 0,
     totalDealsValue: 0,
   });
+  const [investorStats, setInvestorStats] = useState({
+    totalInvested: 0,
+    investorCount: 0,
+    avgInvestment: 0,
+    recentDeals: [] as InvestorDeal[],
+  });
 
   useEffect(() => {
     loadStats();
+    loadInvestorStats();
   }, []);
 
   const loadStats = async () => {
@@ -35,6 +52,37 @@ export default function Dashboard() {
       deals: dealsRes.data?.length || 0,
       properties: propertiesRes.count || 0,
       totalDealsValue,
+    });
+  };
+
+  const loadInvestorStats = async () => {
+    // Get all closed won deals from investor accounts
+    const { data: closedDeals } = await supabase
+      .from('deals')
+      .select('id, name, amount_target, close_date, instrument, account:accounts!inner(name, type)')
+      .eq('stage', 'Closed_Won')
+      .in('account.type', ['Investor', 'Fund', 'HoldCo'])
+      .order('close_date', { ascending: false })
+      .limit(5);
+
+    const totalInvested = closedDeals?.reduce((sum, deal) => 
+      sum + (Number(deal.amount_target) || 0), 0
+    ) || 0;
+
+    // Get unique investor count
+    const { data: investors } = await supabase
+      .from('accounts')
+      .select('id')
+      .in('type', ['Investor', 'Fund', 'HoldCo']);
+
+    const investorCount = investors?.length || 0;
+    const avgInvestment = investorCount > 0 ? totalInvested / investorCount : 0;
+
+    setInvestorStats({
+      totalInvested,
+      investorCount,
+      avgInvestment,
+      recentDeals: (closedDeals || []) as InvestorDeal[],
     });
   };
 
@@ -96,6 +144,98 @@ export default function Dashboard() {
             );
           })}
         </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Invested Capital
+              </CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${(investorStats.totalInvested / 1000000).toFixed(1)}M
+              </div>
+              <p className="text-xs text-muted-foreground">
+                From closed deals
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Active Investors
+              </CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{investorStats.investorCount}</div>
+              <p className="text-xs text-muted-foreground">
+                Investors, Funds & HoldCos
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Avg Investment
+              </CardTitle>
+              <PieChart className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                ${(investorStats.avgInvestment / 1000000).toFixed(2)}M
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Per investor
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Recent Investments</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {investorStats.recentDeals.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-4">
+                No closed investments yet. Track your first deal to see it here.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {investorStats.recentDeals.map((deal) => (
+                  <div key={deal.id} className="flex items-center justify-between border-b pb-3 last:border-0">
+                    <div className="space-y-1">
+                      <p className="text-sm font-medium">{deal.name}</p>
+                      <div className="flex items-center gap-2">
+                        <p className="text-xs text-muted-foreground">
+                          {deal.account?.name}
+                        </p>
+                        <Badge variant="outline" className="text-xs">
+                          {deal.instrument}
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm font-bold">
+                        ${(Number(deal.amount_target) / 1000000).toFixed(2)}M
+                      </p>
+                      {deal.close_date && (
+                        <p className="text-xs text-muted-foreground">
+                          {new Date(deal.close_date).toLocaleDateString()}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
