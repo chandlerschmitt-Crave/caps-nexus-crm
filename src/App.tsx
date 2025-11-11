@@ -9,6 +9,8 @@ import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
 import Pipeline from "./pages/Pipeline";
 import Accounts from "./pages/Accounts";
+import Contacts from "./pages/Contacts";
+import Investors from "./pages/Investors";
 import Projects from "./pages/Projects";
 import Properties from "./pages/Properties";
 import Tasks from "./pages/Tasks";
@@ -47,6 +49,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Accounts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/contacts"
+              element={
+                <ProtectedRoute>
+                  <Contacts />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/investors"
+              element={
+                <ProtectedRoute>
+                  <Investors />
                 </ProtectedRoute>
               }
             />
