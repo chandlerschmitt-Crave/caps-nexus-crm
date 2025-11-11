@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
@@ -14,8 +14,46 @@ export default function Auth() {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [loading, setLoading] = useState(false);
+  const [portfolioValue, setPortfolioValue] = useState(0);
+  const [dataCenterMW, setDataCenterMW] = useState(0);
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  useEffect(() => {
+    loadStats();
+  }, []);
+
+  const loadStats = async () => {
+    // Get closed won deals for portfolio value
+    const { data: deals } = await supabase
+      .from('deals')
+      .select('amount_target')
+      .eq('stage', 'Closed_Won');
+
+    const totalValue = deals?.reduce((sum, deal) => 
+      sum + (Number(deal.amount_target) || 0), 0
+    ) || 0;
+    
+    setPortfolioValue(totalValue);
+
+    // Get AI Data Center projects and extract MW from names
+    const { data: projects } = await supabase
+      .from('projects')
+      .select('name, est_total_cost')
+      .eq('project_type', 'AI_Data_Center')
+      .in('stage', ['Construction', 'Stabilization', 'Exit']);
+
+    let totalMW = 0;
+    projects?.forEach(project => {
+      // Extract MW from project name (e.g., "Lancaster TX 240MW Campus")
+      const mwMatch = project.name.match(/(\d+)\s*MW/i);
+      if (mwMatch) {
+        totalMW += parseInt(mwMatch[1]);
+      }
+    });
+    
+    setDataCenterMW(totalMW);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,14 +140,20 @@ export default function Auth() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-yellow-300">
                   <TrendingUp className="h-5 w-5" />
-                  <span className="text-2xl font-bold">$1B+</span>
+                  <span className="text-2xl font-bold">
+                    {portfolioValue > 0 
+                      ? `$${(portfolioValue / 1000000).toFixed(1)}M` 
+                      : '$0'}
+                  </span>
                 </div>
                 <p className="text-sm text-blue-100">Portfolio Value</p>
               </div>
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-yellow-300">
                   <Building2 className="h-5 w-5" />
-                  <span className="text-2xl font-bold">240MW</span>
+                  <span className="text-2xl font-bold">
+                    {dataCenterMW > 0 ? `${dataCenterMW}MW` : '0MW'}
+                  </span>
                 </div>
                 <p className="text-sm text-blue-100">AI Data Center</p>
               </div>
