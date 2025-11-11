@@ -252,6 +252,74 @@ export type Database = {
         }
         Relationships: []
       }
+      emails: {
+        Row: {
+          bcc_emails: string[] | null
+          body_html: string | null
+          body_text: string | null
+          cc_emails: string[] | null
+          contact_id: string | null
+          created_at: string
+          from_email: string
+          from_name: string | null
+          gmail_message_id: string
+          gmail_thread_id: string
+          has_attachments: boolean
+          id: string
+          is_sent: boolean
+          sent_at: string
+          subject: string
+          synced_at: string
+          to_emails: string[]
+        }
+        Insert: {
+          bcc_emails?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[] | null
+          contact_id?: string | null
+          created_at?: string
+          from_email: string
+          from_name?: string | null
+          gmail_message_id: string
+          gmail_thread_id: string
+          has_attachments?: boolean
+          id?: string
+          is_sent?: boolean
+          sent_at: string
+          subject: string
+          synced_at?: string
+          to_emails: string[]
+        }
+        Update: {
+          bcc_emails?: string[] | null
+          body_html?: string | null
+          body_text?: string | null
+          cc_emails?: string[] | null
+          contact_id?: string | null
+          created_at?: string
+          from_email?: string
+          from_name?: string | null
+          gmail_message_id?: string
+          gmail_thread_id?: string
+          has_attachments?: boolean
+          id?: string
+          is_sent?: boolean
+          sent_at?: string
+          subject?: string
+          synced_at?: string
+          to_emails?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "emails_contact_id_fkey"
+            columns: ["contact_id"]
+            isOneToOne: false
+            referencedRelation: "contacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           content: string
