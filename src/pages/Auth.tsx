@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
-import heroBg from '@/assets/hero-bg.png';
+import { Building2, TrendingUp } from 'lucide-react';
 
 export default function Auth() {
   const [isLogin, setIsLogin] = useState(true);
@@ -70,14 +70,54 @@ export default function Auth() {
 
   return (
     <div className="flex min-h-screen">
-      {/* Left side - Hero Image */}
-      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden">
-        <div 
-          className="absolute inset-0 bg-cover bg-center"
-          style={{ backgroundImage: `url(${heroBg})` }}
-        >
-          <div className="absolute inset-0 bg-gradient-to-br from-primary/90 via-primary/70 to-transparent" />
+      {/* Left side - Hero Section */}
+      <div className="hidden lg:flex lg:w-1/2 relative overflow-hidden bg-gradient-to-br from-primary via-blue-600 to-blue-800">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent)]" />
+        
+        <div className="relative z-10 flex flex-col justify-center p-12 text-white">
+          <div className="space-y-6 max-w-lg">
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-lg bg-white/10 backdrop-blur-sm flex items-center justify-center">
+                <Building2 className="h-7 w-7" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold">CAPS Capital</h2>
+                <p className="text-sm text-blue-100">Enterprises</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <h1 className="text-4xl font-bold leading-tight">
+                <span className="text-yellow-300">Tokenizing</span>
+                <br />
+                Luxury Real Estate
+              </h1>
+              
+              <p className="text-lg text-blue-100">
+                Revolutionizing luxury real estate and AI datacenter development through innovative tokenization
+              </p>
+            </div>
+
+            <div className="flex gap-8 pt-6">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-yellow-300">
+                  <TrendingUp className="h-5 w-5" />
+                  <span className="text-2xl font-bold">$1B+</span>
+                </div>
+                <p className="text-sm text-blue-100">Portfolio Value</p>
+              </div>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-yellow-300">
+                  <Building2 className="h-5 w-5" />
+                  <span className="text-2xl font-bold">240MW</span>
+                </div>
+                <p className="text-sm text-blue-100">AI Data Center</p>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <div className="absolute bottom-0 right-0 w-96 h-96 bg-blue-400/20 rounded-full blur-3xl" />
       </div>
 
       {/* Right side - Login Form */}
@@ -87,7 +127,7 @@ export default function Auth() {
             <div className="space-y-6">
               {/* Logo & Title */}
               <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                   CAPS Capital
                 </h1>
                 <p className="text-muted-foreground text-sm">
