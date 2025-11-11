@@ -252,6 +252,33 @@ export type Database = {
         }
         Relationships: []
       }
+      notes: {
+        Row: {
+          content: string
+          created_at: string
+          created_by_user_id: string
+          id: string
+          related_id: string
+          related_type: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          created_by_user_id: string
+          id?: string
+          related_id: string
+          related_type: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          created_by_user_id?: string
+          id?: string
+          related_id?: string
+          related_type?: string
+        }
+        Relationships: []
+      }
       picklists: {
         Row: {
           id: string

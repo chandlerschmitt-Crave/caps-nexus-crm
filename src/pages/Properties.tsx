@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PropertyForm } from '@/components/forms/PropertyForm';
+import { Notes } from '@/components/Notes';
 import { supabase } from '@/integrations/supabase/client';
 import { Home, MapPin, TrendingUp, Plus } from 'lucide-react';
 
@@ -22,6 +23,8 @@ interface Property {
 export default function Properties() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
+  const [notesDialogOpen, setNotesDialogOpen] = useState(false);
 
   useEffect(() => {
     loadProperties();
@@ -75,7 +78,7 @@ export default function Properties() {
           {properties.map((property) => {
             const spread = calculateSpread(property);
             return (
-              <Card key={property.id} className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card key={property.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-start gap-3">
                     <Home className="h-5 w-5 text-primary mt-1" />
@@ -134,11 +137,42 @@ export default function Properties() {
                       )}
                     </div>
                   )}
+
+                  <div className="pt-3 border-t">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => {
+                        setSelectedProperty(property);
+                        setNotesDialogOpen(true);
+                      }}
+                    >
+                      View Notes
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
             );
           })}
         </div>
+
+        <Dialog open={notesDialogOpen} onOpenChange={setNotesDialogOpen}>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>
+                {selectedProperty?.address} - Notes
+              </DialogTitle>
+            </DialogHeader>
+            {selectedProperty && (
+              <Notes
+                relatedType="property"
+                relatedId={selectedProperty.id}
+                title="Property Notes"
+              />
+            )}
+          </DialogContent>
+        </Dialog>
       </div>
     </Layout>
   );
