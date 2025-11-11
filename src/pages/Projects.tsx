@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { FolderKanban, MapPin, DollarSign } from 'lucide-react';
+import { FolderKanban, MapPin, DollarSign, Plus } from 'lucide-react';
+import { ProjectForm } from '@/components/forms/ProjectForm';
 
 interface Project {
   id: string;
@@ -17,6 +19,7 @@ interface Project {
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
+  const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -47,12 +50,24 @@ export default function Projects() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
-          <p className="text-muted-foreground">
-            Development initiatives and funds
-          </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
+            <p className="text-muted-foreground">
+              Development initiatives and funds
+            </p>
+          </div>
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Project
+          </Button>
         </div>
+
+        <ProjectForm 
+          open={formOpen} 
+          onOpenChange={setFormOpen} 
+          onSuccess={loadProjects}
+        />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (

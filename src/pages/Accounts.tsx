@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Building2, Globe, Phone } from 'lucide-react';
+import { Building2, Globe, Phone, Plus } from 'lucide-react';
+import { AccountForm } from '@/components/forms/AccountForm';
 
 interface Account {
   id: string;
@@ -17,6 +19,7 @@ interface Account {
 
 export default function Accounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
+  const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     loadAccounts();
@@ -41,7 +44,17 @@ export default function Accounts() {
               Organizations and partners
             </p>
           </div>
+          <Button onClick={() => setFormOpen(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Account
+          </Button>
         </div>
+
+        <AccountForm 
+          open={formOpen} 
+          onOpenChange={setFormOpen} 
+          onSuccess={loadAccounts}
+        />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {accounts.map((account) => (
