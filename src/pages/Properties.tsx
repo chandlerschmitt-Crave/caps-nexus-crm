@@ -2,8 +2,11 @@ import { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { PropertyForm } from '@/components/forms/PropertyForm';
 import { supabase } from '@/integrations/supabase/client';
-import { Home, MapPin, TrendingUp } from 'lucide-react';
+import { Home, MapPin, TrendingUp, Plus } from 'lucide-react';
 
 interface Property {
   id: string;
@@ -18,6 +21,7 @@ interface Property {
 
 export default function Properties() {
   const [properties, setProperties] = useState<Property[]>([]);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     loadProperties();
@@ -40,9 +44,31 @@ export default function Properties() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Properties</h1>
-          <p className="text-muted-foreground">Real estate assets</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">Properties</h1>
+            <p className="text-muted-foreground">Real estate assets</p>
+          </div>
+          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Property
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Add New Property</DialogTitle>
+              </DialogHeader>
+              <PropertyForm
+                onSuccess={() => {
+                  setDialogOpen(false);
+                  loadProperties();
+                }}
+                onCancel={() => setDialogOpen(false)}
+              />
+            </DialogContent>
+          </Dialog>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
