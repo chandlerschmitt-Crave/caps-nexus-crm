@@ -232,6 +232,53 @@ async function enrichUtilitiesByRegion(supabase: any, parcel: any, existingUtili
   return enriched;
 }
 
+async function enrichProximitySignals(supabase: any, lat: number, lon: number, state: string): Promise<any> {
+  try {
+    // Query POI reference for airports and highways in the same state
+    const { data: pois } = await supabase
+      .from('poi_reference')
+      .select('*')
+      .eq('state', state);
+
+    if (!pois || pois.length === 0) {
+      return {};
+    }
+
+    const airports = pois.filter((p: any) => p.poi_type === 'airport');
+    const highways = pois.filter((p: any) => p.poi_type === 'interstate');
+
+    let nearestAirport = null;
+    let minAirportDist = Infinity;
+    
+    for (const airport of airports) {
+      const dist = haversineDistance(lat, lon, airport.latitude, airport.longitude);
+      if (dist < minAirportDist) {
+        minAirportDist = dist;
+        nearestAirport = airport;
+      }
+    }
+
+    let nearestHighway = null;
+    let minHighwayDist = Infinity;
+    
+    for (const highway of highways) {
+      const dist = haversineDistance(lat, lon, highway.latitude, highway.longitude);
+      if (dist < minHighwayDist) {
+        minHighwayDist = dist;
+        nearestHighway = highway;
+      }
+    }
+
+    return {
+      near_airport_miles: nearestAirport ? Math.round(minAirportDist * 10) / 10 : null,
+      near_highway_miles: nearestHighway ? Math.round(minHighwayDist * 10) / 10 : null,
+    };
+  } catch (error) {
+    console.error('Proximity signals error:', error);
+    return {};
+  }
+}
+
 async function enrichTopographyFromUSGS(lat: number, lon: number): Promise<any> {
   try {
     // USGS Elevation Point Query Service (free)
@@ -449,6 +496,18 @@ Deno.serve(async (req) => {
 
     // 3. Enrich zoning & rights (with smart mineral rights detection)
     await enrichZoningRights(supabase, parcel_id, parcel);
+
+    // 4. Enrich proximity signals (airport, highway distances)
+    if (parcel.latitude && parcel.longitude && parcel.state) {
+      const proximityData = await enrichProximitySignals(supabase, parcel.latitude, parcel.longitude, parcel.state);
+      
+      if (Object.keys(proximityData).length > 0) {
+        await supabase
+          .from('parcels')
+          .update(proximityData)
+          .eq('id', parcel_id);
+      }
+    }
 
     // 5. Enrich topography with USGS Elevation API
     if (parcel.latitude && parcel.longitude) {
