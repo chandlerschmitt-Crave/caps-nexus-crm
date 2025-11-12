@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, Globe, Phone, Plus } from 'lucide-react';
 import { AccountForm } from '@/components/forms/AccountForm';
+import { AccountDetail } from '@/components/AccountDetail';
 
 interface Account {
   id: string;
@@ -20,6 +21,8 @@ interface Account {
 export default function Accounts() {
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [formOpen, setFormOpen] = useState(false);
+  const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
     loadAccounts();
@@ -32,6 +35,11 @@ export default function Accounts() {
       .order('name');
 
     setAccounts(data || []);
+  };
+
+  const handleAccountClick = (accountId: string) => {
+    setSelectedAccountId(accountId);
+    setDetailOpen(true);
   };
 
   return (
@@ -56,9 +64,20 @@ export default function Accounts() {
           onSuccess={loadAccounts}
         />
 
+        <AccountDetail
+          accountId={selectedAccountId}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          onRefresh={loadAccounts}
+        />
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {accounts.map((account) => (
-            <Card key={account.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card 
+              key={account.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => handleAccountClick(account.id)}
+            >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex-1">
