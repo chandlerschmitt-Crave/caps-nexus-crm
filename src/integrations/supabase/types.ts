@@ -106,6 +106,281 @@ export type Database = {
           },
         ]
       }
+      budget_lines: {
+        Row: {
+          actuals: number | null
+          approved_co: number | null
+          code: string
+          committed: number | null
+          eac: number | null
+          forecast_to_complete: number | null
+          id: string
+          name: string
+          notes: string | null
+          original_budget: number | null
+          package_id: string
+          percent_complete: number | null
+          revised_budget: number | null
+          variance: number | null
+        }
+        Insert: {
+          actuals?: number | null
+          approved_co?: number | null
+          code: string
+          committed?: number | null
+          eac?: number | null
+          forecast_to_complete?: number | null
+          id?: string
+          name: string
+          notes?: string | null
+          original_budget?: number | null
+          package_id: string
+          percent_complete?: number | null
+          revised_budget?: number | null
+          variance?: number | null
+        }
+        Update: {
+          actuals?: number | null
+          approved_co?: number | null
+          code?: string
+          committed?: number | null
+          eac?: number | null
+          forecast_to_complete?: number | null
+          id?: string
+          name?: string
+          notes?: string | null
+          original_budget?: number | null
+          package_id?: string
+          percent_complete?: number | null
+          revised_budget?: number | null
+          variance?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "budget_lines_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "construction_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      change_orders: {
+        Row: {
+          approved_at: string | null
+          co_no: string
+          created_at: string | null
+          description: string | null
+          file_url: string | null
+          id: string
+          package_id: string
+          status: string | null
+          value: number
+        }
+        Insert: {
+          approved_at?: string | null
+          co_no: string
+          created_at?: string | null
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          package_id: string
+          status?: string | null
+          value: number
+        }
+        Update: {
+          approved_at?: string | null
+          co_no?: string
+          created_at?: string | null
+          description?: string | null
+          file_url?: string | null
+          id?: string
+          package_id?: string
+          status?: string | null
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "change_orders_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "construction_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commitment_lines: {
+        Row: {
+          budget_line_id: string | null
+          commitment_id: string
+          description: string | null
+          id: string
+          value: number
+        }
+        Insert: {
+          budget_line_id?: string | null
+          commitment_id: string
+          description?: string | null
+          id?: string
+          value: number
+        }
+        Update: {
+          budget_line_id?: string | null
+          commitment_id?: string
+          description?: string | null
+          id?: string
+          value?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commitment_lines_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commitment_lines_commitment_id_fkey"
+            columns: ["commitment_id"]
+            isOneToOne: false
+            referencedRelation: "commitments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      commitments: {
+        Row: {
+          created_at: string | null
+          executed_at: string | null
+          id: string
+          number: string | null
+          package_id: string
+          retainage_pct: number | null
+          status: string | null
+          total_value: number
+          vendor: string
+        }
+        Insert: {
+          created_at?: string | null
+          executed_at?: string | null
+          id?: string
+          number?: string | null
+          package_id: string
+          retainage_pct?: number | null
+          status?: string | null
+          total_value: number
+          vendor: string
+        }
+        Update: {
+          created_at?: string | null
+          executed_at?: string | null
+          id?: string
+          number?: string | null
+          package_id?: string
+          retainage_pct?: number | null
+          status?: string | null
+          total_value?: number
+          vendor?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commitments_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "construction_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      construction_files: {
+        Row: {
+          id: string
+          kind: string | null
+          package_id: string
+          title: string
+          uploaded_at: string | null
+          url: string
+        }
+        Insert: {
+          id?: string
+          kind?: string | null
+          package_id: string
+          title: string
+          uploaded_at?: string | null
+          url: string
+        }
+        Update: {
+          id?: string
+          kind?: string | null
+          package_id?: string
+          title?: string
+          uploaded_at?: string | null
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_files_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "construction_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      construction_packages: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          id: string
+          name: string
+          notes: string | null
+          phase: string | null
+          project_id: string
+          retainage_pct: number | null
+          start_date: string | null
+          substantial_completion: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name: string
+          notes?: string | null
+          phase?: string | null
+          project_id: string
+          retainage_pct?: number | null
+          start_date?: string | null
+          substantial_completion?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          name?: string
+          notes?: string | null
+          phase?: string | null
+          project_id?: string
+          retainage_pct?: number | null
+          start_date?: string | null
+          substantial_completion?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "construction_packages_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "construction_packages_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       contacts: {
         Row: {
           account_id: string
@@ -252,6 +527,104 @@ export type Database = {
         }
         Relationships: []
       }
+      draw_lines: {
+        Row: {
+          budget_line_id: string | null
+          draw_id: string
+          id: string
+          notes: string | null
+          percent_complete: number | null
+          retainage_this_period: number | null
+          this_period: number | null
+          to_date: number | null
+        }
+        Insert: {
+          budget_line_id?: string | null
+          draw_id: string
+          id?: string
+          notes?: string | null
+          percent_complete?: number | null
+          retainage_this_period?: number | null
+          this_period?: number | null
+          to_date?: number | null
+        }
+        Update: {
+          budget_line_id?: string | null
+          draw_id?: string
+          id?: string
+          notes?: string | null
+          percent_complete?: number | null
+          retainage_this_period?: number | null
+          this_period?: number | null
+          to_date?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draw_lines_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "budget_lines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draw_lines_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "draws"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      draws: {
+        Row: {
+          approved: number | null
+          bank_reference: string | null
+          created_at: string | null
+          draw_no: number
+          funded: number | null
+          id: string
+          package_id: string
+          period_end: string | null
+          period_start: string | null
+          requested: number | null
+          status: string | null
+        }
+        Insert: {
+          approved?: number | null
+          bank_reference?: string | null
+          created_at?: string | null
+          draw_no: number
+          funded?: number | null
+          id?: string
+          package_id: string
+          period_end?: string | null
+          period_start?: string | null
+          requested?: number | null
+          status?: string | null
+        }
+        Update: {
+          approved?: number | null
+          bank_reference?: string | null
+          created_at?: string | null
+          draw_no?: number
+          funded?: number | null
+          id?: string
+          package_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          requested?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draws_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "construction_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       emails: {
         Row: {
           bcc_emails: string[] | null
@@ -352,6 +725,66 @@ export type Database = {
           zip?: string | null
         }
         Relationships: []
+      }
+      invoices: {
+        Row: {
+          approved_amount: number | null
+          billed_this_period: number | null
+          commitment_id: string | null
+          created_at: string | null
+          file_url: string | null
+          id: string
+          invoice_no: string
+          package_id: string
+          period_end: string | null
+          period_start: string | null
+          retainage_held: number | null
+          status: string | null
+        }
+        Insert: {
+          approved_amount?: number | null
+          billed_this_period?: number | null
+          commitment_id?: string | null
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          invoice_no: string
+          package_id: string
+          period_end?: string | null
+          period_start?: string | null
+          retainage_held?: number | null
+          status?: string | null
+        }
+        Update: {
+          approved_amount?: number | null
+          billed_this_period?: number | null
+          commitment_id?: string | null
+          created_at?: string | null
+          file_url?: string | null
+          id?: string
+          invoice_no?: string
+          package_id?: string
+          period_end?: string | null
+          period_start?: string | null
+          retainage_held?: number | null
+          status?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "invoices_commitment_id_fkey"
+            columns: ["commitment_id"]
+            isOneToOne: false
+            referencedRelation: "commitments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "construction_packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       listing_jsonld: {
         Row: {
@@ -887,6 +1320,36 @@ export type Database = {
         }
         Relationships: []
       }
+      poi_reference: {
+        Row: {
+          id: string
+          latitude: number
+          longitude: number
+          metadata: Json | null
+          name: string
+          poi_type: string
+          state: string
+        }
+        Insert: {
+          id?: string
+          latitude: number
+          longitude: number
+          metadata?: Json | null
+          name: string
+          poi_type: string
+          state: string
+        }
+        Update: {
+          id?: string
+          latitude?: number
+          longitude?: number
+          metadata?: Json | null
+          name?: string
+          poi_type?: string
+          state?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string
@@ -907,6 +1370,50 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      progress_updates: {
+        Row: {
+          created_at: string | null
+          date: string
+          id: string
+          inspector: string | null
+          notes: string | null
+          package_id: string
+          percent_overall: number | null
+          photos_url: string | null
+          stage: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          inspector?: string | null
+          notes?: string | null
+          package_id: string
+          percent_overall?: number | null
+          photos_url?: string | null
+          stage?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          date?: string
+          id?: string
+          inspector?: string | null
+          notes?: string | null
+          package_id?: string
+          percent_overall?: number | null
+          photos_url?: string | null
+          stage?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_updates_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "construction_packages"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       projects: {
         Row: {

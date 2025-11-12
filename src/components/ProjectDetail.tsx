@@ -11,7 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FolderKanban, Building2, Home, CheckSquare, DollarSign, Link as LinkIcon, Plus, Trash2 } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { FolderKanban, Building2, Home, CheckSquare, DollarSign, Link as LinkIcon, Plus, Trash2, HardHat } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
@@ -20,6 +21,7 @@ import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { PropertyForm } from '@/components/forms/PropertyForm';
 import { DealForm } from '@/components/forms/DealForm';
+import { ConstructionTab } from '@/components/construction/ConstructionTab';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectDetailProps {
@@ -251,173 +253,192 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
           </div>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Project Information</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex gap-2">
-                <Badge variant="secondary">{project.project_type.replace('_', ' ')}</Badge>
-                <Badge variant="outline">{project.stage}</Badge>
-              </div>
+        <div className="mt-6">
+          <Tabs defaultValue="overview" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="overview">Overview</TabsTrigger>
+              <TabsTrigger value="properties">Properties</TabsTrigger>
+              <TabsTrigger value="deals">Deals</TabsTrigger>
+              <TabsTrigger value="construction">Construction</TabsTrigger>
+            </TabsList>
 
-              {project.account && (
-                <div className="flex items-center gap-2">
-                  <Building2 className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <p className="text-sm font-medium">{project.account.name}</p>
-                    {project.account.type_of_account && (
-                      <p className="text-xs text-muted-foreground">{project.account.type_of_account}</p>
-                    )}
+            <TabsContent value="overview" className="mt-6 space-y-6">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-base">Project Information</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex gap-2">
+                    <Badge variant="secondary">{project.project_type.replace('_', ' ')}</Badge>
+                    <Badge variant="outline">{project.stage}</Badge>
                   </div>
-                </div>
-              )}
 
-              {project.market && (
-                <div>
-                  <Label className="text-muted-foreground">Market</Label>
-                  <p className="text-sm mt-1">{project.market}</p>
-                </div>
-              )}
-
-              {project.est_total_cost && (
-                <div className="flex items-center gap-2">
-                  <DollarSign className="h-4 w-4 text-muted-foreground" />
-                  <div>
-                    <Label className="text-muted-foreground">Est. Total Cost</Label>
-                    <p className="text-sm font-medium">
-                      ${(Number(project.est_total_cost) / 1000000).toFixed(1)}M
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {project.description && (
-                <div>
-                  <Label className="text-muted-foreground">Description</Label>
-                  <p className="text-sm mt-1">{project.description}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <Home className="h-4 w-4" />
-                Properties ({properties.length})
-              </CardTitle>
-              <Button size="sm" variant="outline" onClick={() => openLinkDialog('property')}>
-                <Plus className="h-3 w-3 mr-1" />
-                Add Property
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {properties.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No properties linked to this project
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {properties.map((property) => (
-                    <div key={property.id} className="p-3 rounded-md border">
-                      <p className="text-sm font-medium">{property.address}</p>
-                      <div className="flex items-center justify-between mt-1">
-                        <p className="text-xs text-muted-foreground">
-                          {property.city}, {property.state}
-                        </p>
-                        <Badge variant="outline" className="text-xs">
-                          {property.status}
-                        </Badge>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <DollarSign className="h-4 w-4" />
-                Deals ({deals.length})
-              </CardTitle>
-              <Button size="sm" variant="outline" onClick={() => openLinkDialog('deal')}>
-                <Plus className="h-3 w-3 mr-1" />
-                Add Deal
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {deals.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No deals linked to this project
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {deals.map((deal) => (
-                    <div key={deal.id} className="p-3 rounded-md border">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium">{deal.name}</p>
-                        {deal.amount_target && (
-                          <p className="text-sm font-bold">
-                            {formatCurrency(deal.amount_target)}
-                          </p>
+                  {project.account && (
+                    <div className="flex items-center gap-2">
+                      <Building2 className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <p className="text-sm font-medium">{project.account.name}</p>
+                        {project.account.type_of_account && (
+                          <p className="text-xs text-muted-foreground">{project.account.type_of_account}</p>
                         )}
                       </div>
-                      <div className="flex gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">{deal.instrument}</Badge>
-                        <Badge variant="secondary" className="text-xs">{deal.stage}</Badge>
-                      </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  )}
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle className="text-base flex items-center gap-2">
-                <CheckSquare className="h-4 w-4" />
-                Tasks ({tasks.length})
-              </CardTitle>
-              <Button size="sm" variant="outline" onClick={() => openLinkDialog('task')}>
-                <LinkIcon className="h-3 w-3 mr-1" />
-                Create Task
-              </Button>
-            </CardHeader>
-            <CardContent>
-              {tasks.length === 0 ? (
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No tasks linked to this project
-                </p>
-              ) : (
-                <div className="space-y-2">
-                  {tasks.map((task) => (
-                    <div key={task.id} className="flex items-center gap-3 p-2 rounded-md border">
-                      <Checkbox
-                        checked={task.status === 'Done'}
-                        onCheckedChange={() => handleToggleTask(task.id, task.status)}
-                      />
-                      <div className="flex-1">
-                        <p className="text-sm font-medium">{task.subject}</p>
-                        <div className="flex gap-2 mt-1">
-                          <Badge variant="outline" className="text-xs">{task.priority}</Badge>
-                          {task.due_date && (
-                            <span className="text-xs text-muted-foreground">
-                              Due: {new Date(task.due_date).toLocaleDateString()}
-                            </span>
-                          )}
-                        </div>
+                  {project.market && (
+                    <div>
+                      <Label className="text-muted-foreground">Market</Label>
+                      <p className="text-sm mt-1">{project.market}</p>
+                    </div>
+                  )}
+
+                  {project.est_total_cost && (
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4 text-muted-foreground" />
+                      <div>
+                        <Label className="text-muted-foreground">Est. Total Cost</Label>
+                        <p className="text-sm font-medium">
+                          ${(Number(project.est_total_cost) / 1000000).toFixed(1)}M
+                        </p>
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  )}
+
+                  {project.description && (
+                    <div>
+                      <Label className="text-muted-foreground">Description</Label>
+                      <p className="text-sm mt-1">{project.description}</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <CheckSquare className="h-4 w-4" />
+                    Tasks ({tasks.length})
+                  </CardTitle>
+                  <Button size="sm" variant="outline" onClick={() => openLinkDialog('task')}>
+                    <LinkIcon className="h-3 w-3 mr-1" />
+                    Create Task
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {tasks.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No tasks linked to this project
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {tasks.map((task) => (
+                        <div key={task.id} className="flex items-center gap-3 p-2 rounded-md border">
+                          <Checkbox
+                            checked={task.status === 'Done'}
+                            onCheckedChange={() => handleToggleTask(task.id, task.status)}
+                          />
+                          <div className="flex-1">
+                            <p className="text-sm font-medium">{task.subject}</p>
+                            <div className="flex gap-2 mt-1">
+                              <Badge variant="outline" className="text-xs">{task.priority}</Badge>
+                              {task.due_date && (
+                                <span className="text-xs text-muted-foreground">
+                                  Due: {new Date(task.due_date).toLocaleDateString()}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="properties" className="mt-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <Home className="h-4 w-4" />
+                    Properties ({properties.length})
+                  </CardTitle>
+                  <Button size="sm" variant="outline" onClick={() => openLinkDialog('property')}>
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Property
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {properties.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No properties linked to this project
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {properties.map((property) => (
+                        <div key={property.id} className="p-3 rounded-md border">
+                          <p className="text-sm font-medium">{property.address}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <p className="text-xs text-muted-foreground">
+                              {property.city}, {property.state}
+                            </p>
+                            <Badge variant="outline" className="text-xs">
+                              {property.status}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="deals" className="mt-6">
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-base flex items-center gap-2">
+                    <DollarSign className="h-4 w-4" />
+                    Deals ({deals.length})
+                  </CardTitle>
+                  <Button size="sm" variant="outline" onClick={() => openLinkDialog('deal')}>
+                    <Plus className="h-3 w-3 mr-1" />
+                    Add Deal
+                  </Button>
+                </CardHeader>
+                <CardContent>
+                  {deals.length === 0 ? (
+                    <p className="text-sm text-muted-foreground text-center py-4">
+                      No deals linked to this project
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {deals.map((deal) => (
+                        <div key={deal.id} className="p-3 rounded-md border">
+                          <div className="flex items-center justify-between">
+                            <p className="text-sm font-medium">{deal.name}</p>
+                            {deal.amount_target && (
+                              <p className="text-sm font-bold">
+                                {formatCurrency(deal.amount_target)}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex gap-2 mt-1">
+                            <Badge variant="outline" className="text-xs">{deal.instrument}</Badge>
+                            <Badge variant="secondary" className="text-xs">{deal.stage}</Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </TabsContent>
+
+            <TabsContent value="construction" className="mt-6">
+              <ConstructionTab projectId={projectId!} />
+            </TabsContent>
+          </Tabs>
         </div>
 
         <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
