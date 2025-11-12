@@ -8,6 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { MapPin, Plus, Search } from 'lucide-react';
 import { ParcelForm } from '@/components/forms/ParcelForm';
 import { ParcelDetail } from '@/components/ParcelDetail';
+import { SearchLandDialog } from '@/components/SearchLandDialog';
 import { Badge } from '@/components/ui/badge';
 
 interface Parcel {
@@ -29,6 +30,7 @@ interface Parcel {
 export default function LandIntelligence() {
   const [parcels, setParcels] = useState<Parcel[]>([]);
   const [formOpen, setFormOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const [selectedParcelId, setSelectedParcelId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   
@@ -91,11 +93,23 @@ export default function LandIntelligence() {
               Parcel prospecting and enrichment
             </p>
           </div>
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Parcel
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setSearchOpen(true)} variant="outline">
+              <Search className="mr-2 h-4 w-4" />
+              Search Listings
+            </Button>
+            <Button onClick={() => setFormOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Parcel
+            </Button>
+          </div>
         </div>
+
+        <SearchLandDialog
+          open={searchOpen}
+          onOpenChange={setSearchOpen}
+          onSuccess={loadParcels}
+        />
 
         <ParcelForm 
           open={formOpen} 
