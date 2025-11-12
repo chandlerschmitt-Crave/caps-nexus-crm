@@ -36,7 +36,7 @@ export default function LandIntelligence() {
     state: '',
     county: '',
     bestUse: '',
-    status: 'Prospecting',
+    status: '',
     minAcreage: '',
     maxAcreage: '',
   });
@@ -130,12 +130,11 @@ export default function LandIntelligence() {
                 />
               </div>
               <div>
-                <Select value={filters.bestUse} onValueChange={(v) => setFilters({ ...filters, bestUse: v })}>
+                <Select value={filters.bestUse || undefined} onValueChange={(v) => setFilters({ ...filters, bestUse: v })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Best Use" />
+                    <SelectValue placeholder="All Uses" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Uses</SelectItem>
                     <SelectItem value="Data_Center">Data Center</SelectItem>
                     <SelectItem value="Luxury">Luxury</SelectItem>
                     <SelectItem value="Mixed">Mixed</SelectItem>
@@ -144,12 +143,11 @@ export default function LandIntelligence() {
                 </Select>
               </div>
               <div>
-                <Select value={filters.status} onValueChange={(v) => setFilters({ ...filters, status: v })}>
+                <Select value={filters.status || undefined} onValueChange={(v) => setFilters({ ...filters, status: v })}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Status" />
+                    <SelectValue placeholder="All Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Status</SelectItem>
                     <SelectItem value="Sourcing">Sourcing</SelectItem>
                     <SelectItem value="Prospecting">Prospecting</SelectItem>
                     <SelectItem value="Qualified">Qualified</SelectItem>
