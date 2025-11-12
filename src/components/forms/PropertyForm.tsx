@@ -28,10 +28,15 @@ const propertySchema = z.object({
   city: z.string().trim().min(1, 'City is required').max(100),
   state: z.string().trim().length(2, 'State must be 2-letter code (e.g., CA, TX)'),
   apn: z.string().trim().max(50).optional().or(z.literal('')),
-  land_cost: z.string().optional(),
-  construction_budget: z.string().optional(),
-  total_cost: z.string().optional(),
-  target_resale_value: z.string().optional(),
+  purchase: z.string().optional(),
+  construction_hard: z.string().optional(),
+  softs: z.string().optional(),
+  total_use_of_funds: z.string().optional(),
+  arv: z.string().optional(),
+  exit_costs: z.string().optional(),
+  projected_profit: z.string().optional(),
+  gross_margin: z.string().optional(),
+  roi_on_uses: z.string().optional(),
   status: z.string().min(1, 'Status is required'),
   project_name: z.string().trim().min(1, 'Project name is required').max(200),
 });
@@ -39,11 +44,13 @@ const propertySchema = z.object({
 type PropertyFormValues = z.infer<typeof propertySchema>;
 
 interface PropertyFormProps {
+  projectId?: string;
+  projectName?: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
+export function PropertyForm({ projectId, projectName, onSuccess, onCancel }: PropertyFormProps) {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -54,36 +61,45 @@ export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
       city: '',
       state: '',
       apn: '',
-      land_cost: '',
-      construction_budget: '',
-      total_cost: '',
-      target_resale_value: '',
+      purchase: '',
+      construction_hard: '',
+      softs: '',
+      total_use_of_funds: '',
+      arv: '',
+      exit_costs: '',
+      projected_profit: '',
+      gross_margin: '',
+      roi_on_uses: '',
       status: 'Sourcing',
-      project_name: '',
+      project_name: projectName || '',
     },
   });
 
   const onSubmit = async (values: PropertyFormValues) => {
     setLoading(true);
     try {
-      // Find or create project
-      let projectId: string;
-      const { data: existingProject } = await supabase
-        .from('projects')
-        .select('id')
-        .ilike('name', values.project_name)
-        .single();
-
-      if (existingProject) {
-        projectId = existingProject.id;
+      // Use provided projectId or find project by name
+      let finalProjectId: string;
+      if (projectId) {
+        finalProjectId = projectId;
       } else {
-        toast({
-          title: 'Error',
-          description: 'Project not found. Please create the project first.',
-          variant: 'destructive',
-        });
-        setLoading(false);
-        return;
+        const { data: existingProject } = await supabase
+          .from('projects')
+          .select('id')
+          .ilike('name', values.project_name)
+          .single();
+
+        if (existingProject) {
+          finalProjectId = existingProject.id;
+        } else {
+          toast({
+            title: 'Error',
+            description: 'Project not found. Please create the project first.',
+            variant: 'destructive',
+          });
+          setLoading(false);
+          return;
+        }
       }
 
       const propertyData = {
@@ -91,12 +107,17 @@ export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
         city: values.city,
         state: values.state.toUpperCase(),
         apn: values.apn || null,
-        land_cost: values.land_cost ? parseFloat(values.land_cost) : null,
-        construction_budget: values.construction_budget ? parseFloat(values.construction_budget) : null,
-        total_cost: values.total_cost ? parseFloat(values.total_cost) : null,
-        target_resale_value: values.target_resale_value ? parseFloat(values.target_resale_value) : null,
+        purchase: values.purchase ? parseFloat(values.purchase) : null,
+        construction_hard: values.construction_hard ? parseFloat(values.construction_hard) : null,
+        softs: values.softs ? parseFloat(values.softs) : null,
+        total_use_of_funds: values.total_use_of_funds ? parseFloat(values.total_use_of_funds) : null,
+        arv: values.arv ? parseFloat(values.arv) : null,
+        exit_costs: values.exit_costs ? parseFloat(values.exit_costs) : null,
+        projected_profit: values.projected_profit ? parseFloat(values.projected_profit) : null,
+        gross_margin: values.gross_margin ? parseFloat(values.gross_margin) : null,
+        roi_on_uses: values.roi_on_uses ? parseFloat(values.roi_on_uses) : null,
         status: values.status as any,
-        project_id: projectId,
+        project_id: finalProjectId,
       };
 
       const { error } = await supabase.from('properties').insert([propertyData]);
@@ -221,64 +242,142 @@ export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
           )}
         />
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="land_cost"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Land Cost ($)</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="5000000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+        <div className="space-y-4 border-t pt-4">
+          <h3 className="font-semibold text-sm">Financial Details</h3>
+          
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="purchase"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Purchase ($)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="5000000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="construction_budget"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Construction Budget ($)</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="8000000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+            <FormField
+              control={form.control}
+              name="construction_hard"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Construction (Hard) ($)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="8000000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="total_cost"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Total Cost ($)</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="13000000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="softs"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Softs ($)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="1000000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
-          <FormField
-            control={form.control}
-            name="target_resale_value"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Target Resale Value ($)</FormLabel>
-                <FormControl>
-                  <Input type="number" placeholder="18000000" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
+            <FormField
+              control={form.control}
+              name="total_use_of_funds"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Total Use of Funds ($)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="14000000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <FormField
+              control={form.control}
+              name="arv"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ARV ($)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="18000000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="exit_costs"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Exit Costs ($)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="500000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
+            <FormField
+              control={form.control}
+              name="projected_profit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Projected Profit ($)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="3500000" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="gross_margin"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Gross Margin (%)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="25" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="roi_on_uses"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>ROI on Uses (%)</FormLabel>
+                  <FormControl>
+                    <Input type="number" placeholder="20" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
         </div>
 
         <div className="flex justify-end gap-2 pt-4">

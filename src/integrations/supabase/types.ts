@@ -320,6 +320,39 @@ export type Database = {
           },
         ]
       }
+      geocode_cache: {
+        Row: {
+          address_hash: string
+          county: string | null
+          formatted_address: string | null
+          lat: number | null
+          lon: number | null
+          raw: Json | null
+          updated_at: string | null
+          zip: string | null
+        }
+        Insert: {
+          address_hash: string
+          county?: string | null
+          formatted_address?: string | null
+          lat?: number | null
+          lon?: number | null
+          raw?: Json | null
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Update: {
+          address_hash?: string
+          county?: string | null
+          formatted_address?: string | null
+          lat?: number | null
+          lon?: number | null
+          raw?: Json | null
+          updated_at?: string | null
+          zip?: string | null
+        }
+        Relationships: []
+      }
       notes: {
         Row: {
           content: string
@@ -344,6 +377,27 @@ export type Database = {
           id?: string
           related_id?: string
           related_type?: string
+        }
+        Relationships: []
+      }
+      ops_settings: {
+        Row: {
+          description: string | null
+          key: string
+          updated_at: string | null
+          value: string
+        }
+        Insert: {
+          description?: string | null
+          key: string
+          updated_at?: string | null
+          value: string
+        }
+        Update: {
+          description?: string | null
+          key?: string
+          updated_at?: string | null
+          value?: string
         }
         Relationships: []
       }
@@ -383,7 +437,10 @@ export type Database = {
         Row: {
           easements: string | null
           id: string
+          mineral_rights_confidence: string | null
+          mineral_rights_evidence: string | null
           mineral_rights_owner: string | null
+          mineral_rights_source: string | null
           notes: string | null
           parcel_id: string | null
           restrictions: string | null
@@ -391,7 +448,10 @@ export type Database = {
         Insert: {
           easements?: string | null
           id?: string
+          mineral_rights_confidence?: string | null
+          mineral_rights_evidence?: string | null
           mineral_rights_owner?: string | null
+          mineral_rights_source?: string | null
           notes?: string | null
           parcel_id?: string | null
           restrictions?: string | null
@@ -399,7 +459,10 @@ export type Database = {
         Update: {
           easements?: string | null
           id?: string
+          mineral_rights_confidence?: string | null
+          mineral_rights_evidence?: string | null
           mineral_rights_owner?: string | null
+          mineral_rights_source?: string | null
           notes?: string | null
           parcel_id?: string | null
           restrictions?: string | null
@@ -451,8 +514,14 @@ export type Database = {
       }
       parcel_utilities: {
         Row: {
+          available_mw_confidence: string | null
           available_mw_estimate: number | null
+          available_mw_evidence: string | null
+          available_mw_source: string | null
           fiber_provider: string | null
+          gas_batteries_allowed: boolean | null
+          gas_batteries_confidence: string | null
+          gas_batteries_source: string | null
           gas_provider: string | null
           grid_operator: string | null
           id: string
@@ -461,11 +530,20 @@ export type Database = {
           notes: string | null
           parcel_id: string | null
           peak_season_constraints: string | null
+          throttling_confidence: string | null
+          throttling_risk: string | null
+          throttling_source: string | null
           water_provider: string | null
         }
         Insert: {
+          available_mw_confidence?: string | null
           available_mw_estimate?: number | null
+          available_mw_evidence?: string | null
+          available_mw_source?: string | null
           fiber_provider?: string | null
+          gas_batteries_allowed?: boolean | null
+          gas_batteries_confidence?: string | null
+          gas_batteries_source?: string | null
           gas_provider?: string | null
           grid_operator?: string | null
           id?: string
@@ -474,11 +552,20 @@ export type Database = {
           notes?: string | null
           parcel_id?: string | null
           peak_season_constraints?: string | null
+          throttling_confidence?: string | null
+          throttling_risk?: string | null
+          throttling_source?: string | null
           water_provider?: string | null
         }
         Update: {
+          available_mw_confidence?: string | null
           available_mw_estimate?: number | null
+          available_mw_evidence?: string | null
+          available_mw_source?: string | null
           fiber_provider?: string | null
+          gas_batteries_allowed?: boolean | null
+          gas_batteries_confidence?: string | null
+          gas_batteries_source?: string | null
           gas_provider?: string | null
           grid_operator?: string | null
           id?: string
@@ -487,6 +574,9 @@ export type Database = {
           notes?: string | null
           parcel_id?: string | null
           peak_season_constraints?: string | null
+          throttling_confidence?: string | null
+          throttling_risk?: string | null
+          throttling_source?: string | null
           water_provider?: string | null
         }
         Relationships: [
@@ -559,6 +649,7 @@ export type Database = {
         Row: {
           acreage: number | null
           address: string | null
+          address_hash: string | null
           apn: string | null
           asking_price: number | null
           best_use: string | null
@@ -567,8 +658,11 @@ export type Database = {
           created_at: string | null
           created_by: string | null
           deal_id: string | null
+          enrichment_status: string | null
           entitlement_notes: string | null
+          force_refresh: boolean | null
           id: string
+          last_enriched_at: string | null
           latitude: number | null
           listing_url: string | null
           longitude: number | null
@@ -590,6 +684,7 @@ export type Database = {
         Insert: {
           acreage?: number | null
           address?: string | null
+          address_hash?: string | null
           apn?: string | null
           asking_price?: number | null
           best_use?: string | null
@@ -598,8 +693,11 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           deal_id?: string | null
+          enrichment_status?: string | null
           entitlement_notes?: string | null
+          force_refresh?: boolean | null
           id?: string
+          last_enriched_at?: string | null
           latitude?: number | null
           listing_url?: string | null
           longitude?: number | null
@@ -621,6 +719,7 @@ export type Database = {
         Update: {
           acreage?: number | null
           address?: string | null
+          address_hash?: string | null
           apn?: string | null
           asking_price?: number | null
           best_use?: string | null
@@ -629,8 +728,11 @@ export type Database = {
           created_at?: string | null
           created_by?: string | null
           deal_id?: string | null
+          enrichment_status?: string | null
           entitlement_notes?: string | null
+          force_refresh?: boolean | null
           id?: string
+          last_enriched_at?: string | null
           latitude?: number | null
           listing_url?: string | null
           longitude?: number | null
@@ -759,44 +861,71 @@ export type Database = {
         Row: {
           address: string
           apn: string | null
+          arv: number | null
           city: string
           construction_budget: number | null
+          construction_hard: number | null
           created_at: string
+          exit_costs: number | null
+          gross_margin: number | null
           id: string
           land_cost: number | null
           project_id: string
+          projected_profit: number | null
+          purchase: number | null
+          roi_on_uses: number | null
+          softs: number | null
           state: string
           status: Database["public"]["Enums"]["property_status"]
           target_resale_value: number | null
           total_cost: number | null
+          total_use_of_funds: number | null
         }
         Insert: {
           address: string
           apn?: string | null
+          arv?: number | null
           city: string
           construction_budget?: number | null
+          construction_hard?: number | null
           created_at?: string
+          exit_costs?: number | null
+          gross_margin?: number | null
           id?: string
           land_cost?: number | null
           project_id: string
+          projected_profit?: number | null
+          purchase?: number | null
+          roi_on_uses?: number | null
+          softs?: number | null
           state: string
           status?: Database["public"]["Enums"]["property_status"]
           target_resale_value?: number | null
           total_cost?: number | null
+          total_use_of_funds?: number | null
         }
         Update: {
           address?: string
           apn?: string | null
+          arv?: number | null
           city?: string
           construction_budget?: number | null
+          construction_hard?: number | null
           created_at?: string
+          exit_costs?: number | null
+          gross_margin?: number | null
           id?: string
           land_cost?: number | null
           project_id?: string
+          projected_profit?: number | null
+          purchase?: number | null
+          roi_on_uses?: number | null
+          softs?: number | null
           state?: string
           status?: Database["public"]["Enums"]["property_status"]
           target_resale_value?: number | null
           total_cost?: number | null
+          total_use_of_funds?: number | null
         }
         Relationships: [
           {

@@ -58,6 +58,11 @@ export function AccountForm({ open, onOpenChange, onSuccess }: AccountFormProps)
       reset();
       onSuccess();
       onOpenChange(false);
+
+      // Redirect to Investors page if it's an investor account
+      if (data.type_of_account?.toLowerCase().includes('investor')) {
+        window.location.href = '/investors';
+      }
     } catch (error: any) {
       toast({
         title: 'Error',

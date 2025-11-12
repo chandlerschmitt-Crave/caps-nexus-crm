@@ -11,12 +11,15 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { FolderKanban, Building2, Home, CheckSquare, DollarSign, Link as LinkIcon } from 'lucide-react';
+import { FolderKanban, Building2, Home, CheckSquare, DollarSign, Link as LinkIcon, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { PropertyForm } from '@/components/forms/PropertyForm';
+import { DealForm } from '@/components/forms/DealForm';
+import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectDetailProps {
   projectId: string | null;
@@ -67,7 +70,7 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
   const [deals, setDeals] = useState<Deal[]>([]);
   const [loading, setLoading] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
-  const [linkType, setLinkType] = useState<'task' | null>(null);
+  const [linkType, setLinkType] = useState<'task' | 'property' | 'deal' | null>(null);
   const [taskForm, setTaskForm] = useState<{ subject: string; due_date: string; priority: 'Low' | 'Med' | 'High' }>({ 
     subject: '', 
     due_date: '', 
@@ -180,7 +183,7 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
     }
   };
 
-  const openLinkDialog = (type: 'task') => {
+  const openLinkDialog = (type: 'task' | 'property' | 'deal') => {
     setLinkType(type);
     setTaskForm({ subject: '', due_date: '', priority: 'Med' });
     setLinkDialogOpen(true);
@@ -255,11 +258,15 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <Home className="h-4 w-4" />
                 Properties ({properties.length})
               </CardTitle>
+              <Button size="sm" variant="outline" onClick={() => openLinkDialog('property')}>
+                <Plus className="h-3 w-3 mr-1" />
+                Add Property
+              </Button>
             </CardHeader>
             <CardContent>
               {properties.length === 0 ? (
@@ -287,11 +294,15 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
           </Card>
 
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle className="text-base flex items-center gap-2">
                 <DollarSign className="h-4 w-4" />
                 Deals ({deals.length})
               </CardTitle>
+              <Button size="sm" variant="outline" onClick={() => openLinkDialog('deal')}>
+                <Plus className="h-3 w-3 mr-1" />
+                Add Deal
+              </Button>
             </CardHeader>
             <CardContent>
               {deals.length === 0 ? (
@@ -306,7 +317,7 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
                         <p className="text-sm font-medium">{deal.name}</p>
                         {deal.amount_target && (
                           <p className="text-sm font-bold">
-                            ${(Number(deal.amount_target) / 1000000).toFixed(2)}M
+                            {formatCurrency(deal.amount_target)}
                           </p>
                         )}
                       </div>
@@ -365,56 +376,83 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
         </div>
 
         <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create Task</DialogTitle>
+              <DialogTitle>
+                {linkType === 'task' && 'Create Task'}
+                {linkType === 'property' && 'Add Property'}
+                {linkType === 'deal' && 'Add Deal'}
+              </DialogTitle>
             </DialogHeader>
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label>Task Subject *</Label>
-                <Input
-                  value={taskForm.subject}
-                  onChange={(e) => setTaskForm({ ...taskForm, subject: e.target.value })}
-                  placeholder="e.g., Review project timeline"
-                />
+            {linkType === 'task' && (
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Task Subject *</Label>
+                  <Input
+                    value={taskForm.subject}
+                    onChange={(e) => setTaskForm({ ...taskForm, subject: e.target.value })}
+                    placeholder="e.g., Review project timeline"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Due Date</Label>
+                  <Input
+                    type="date"
+                    value={taskForm.due_date}
+                    onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Priority</Label>
+                  <Select value={taskForm.priority} onValueChange={(value) => setTaskForm({ ...taskForm, priority: value as 'Low' | 'Med' | 'High' })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Low">Low</SelectItem>
+                      <SelectItem value="Med">Med</SelectItem>
+                      <SelectItem value="High">High</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setLinkDialogOpen(false)}
+                    disabled={loading}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={handleCreateTask}
+                    disabled={!taskForm.subject || loading}
+                  >
+                    {loading ? 'Creating...' : 'Create'}
+                  </Button>
+                </div>
               </div>
-              <div className="space-y-2">
-                <Label>Due Date</Label>
-                <Input
-                  type="date"
-                  value={taskForm.due_date}
-                  onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Priority</Label>
-                <Select value={taskForm.priority} onValueChange={(value) => setTaskForm({ ...taskForm, priority: value as 'Low' | 'Med' | 'High' })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Low">Low</SelectItem>
-                    <SelectItem value="Med">Med</SelectItem>
-                    <SelectItem value="High">High</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex justify-end gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setLinkDialogOpen(false)}
-                  disabled={loading}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCreateTask}
-                  disabled={!taskForm.subject || loading}
-                >
-                  {loading ? 'Creating...' : 'Create'}
-                </Button>
-              </div>
-            </div>
+            )}
+            {linkType === 'property' && (
+              <PropertyForm
+                projectId={projectId!}
+                projectName={project?.name}
+                onSuccess={() => {
+                  setLinkDialogOpen(false);
+                  loadProjectDetails();
+                }}
+                onCancel={() => setLinkDialogOpen(false)}
+              />
+            )}
+            {linkType === 'deal' && (
+              <DealForm
+                projectId={projectId!}
+                onSuccess={() => {
+                  setLinkDialogOpen(false);
+                  loadProjectDetails();
+                }}
+                onCancel={() => setLinkDialogOpen(false)}
+              />
+            )}
           </DialogContent>
         </Dialog>
       </SheetContent>
