@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Building2, LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp } from 'lucide-react';
+import { Building2, LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin } from 'lucide-react';
 
 interface LayoutProps {
   children: ReactNode;
@@ -21,6 +21,7 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Projects', href: '/projects', icon: FolderKanban },
     { name: 'Properties', href: '/properties', icon: Home },
     { name: 'Tasks', href: '/tasks', icon: ListTodo },
+    { name: 'Land Intel', href: '/land-intelligence', icon: MapPin },
   ];
 
   return (
