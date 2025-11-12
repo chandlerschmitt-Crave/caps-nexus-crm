@@ -28,6 +28,7 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
   const [loading, setLoading] = useState(false);
   const [disqualifyOpen, setDisqualifyOpen] = useState(false);
   const [disqualifyReason, setDisqualifyReason] = useState('');
+  const [qualifyConfirmOpen, setQualifyConfirmOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -114,6 +115,15 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
     }
   };
 
+  const checkQualifyRequirements = () => {
+    // Check if best_use is Data_Center and no MW value
+    if (parcel.best_use === 'Data_Center' && !utilities?.available_mw_estimate) {
+      setQualifyConfirmOpen(true);
+    } else {
+      handleQualify();
+    }
+  };
+
   const handleQualify = async () => {
     setLoading(true);
     try {
@@ -132,6 +142,7 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
         description: 'Deal advanced to Intro and task created',
       });
 
+      setQualifyConfirmOpen(false);
       loadParcelDetails();
       onRefresh();
     } catch (error: any) {
@@ -210,7 +221,7 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
               )}
               {parcel.status === 'Prospecting' && (
                 <>
-                  <Button onClick={handleQualify} disabled={loading} variant="outline">
+                  <Button onClick={checkQualifyRequirements} disabled={loading} variant="outline">
                     <CheckCircle className="mr-2 h-4 w-4" />
                     Qualify
                   </Button>
@@ -371,9 +382,54 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
                         </div>
                       )}
                       {utilities.available_mw_estimate && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">Available MW:</span>
-                          <span className="font-semibold text-primary">{utilities.available_mw_estimate} MW</span>
+                        <div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Available MW:</span>
+                            <span className="font-semibold text-primary">{utilities.available_mw_estimate} MW</span>
+                          </div>
+                          {utilities.available_mw_confidence && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ({utilities.available_mw_confidence}, {utilities.available_mw_source || 'unknown source'})
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {utilities.nearest_substation_distance_mi && utilities.nearest_substation_name && (
+                        <div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Substation Distance:</span>
+                            <span className="font-medium">{utilities.nearest_substation_distance_mi} mi</span>
+                          </div>
+                        </div>
+                      )}
+                      {utilities.throttling_risk && (
+                        <div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Throttling Risk:</span>
+                            <Badge variant={utilities.throttling_risk === 'high' ? 'destructive' : 'secondary'}>
+                              {utilities.throttling_risk}
+                            </Badge>
+                          </div>
+                          {utilities.throttling_confidence && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ({utilities.throttling_confidence}, {utilities.throttling_source || 'unknown source'})
+                            </p>
+                          )}
+                        </div>
+                      )}
+                      {utilities.gas_batteries_allowed !== null && (
+                        <div>
+                          <div className="flex justify-between">
+                            <span className="text-muted-foreground">Gas/Batteries:</span>
+                            <Badge variant={utilities.gas_batteries_allowed ? 'default' : 'secondary'}>
+                              {utilities.gas_batteries_allowed ? 'Allowed' : 'Not Allowed'}
+                            </Badge>
+                          </div>
+                          {utilities.gas_batteries_confidence && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ({utilities.gas_batteries_confidence}, {utilities.gas_batteries_source || 'unknown source'})
+                            </p>
+                          )}
                         </div>
                       )}
                       {utilities.water_provider && (
@@ -462,8 +518,20 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
                     <CardContent className="space-y-2">
                       {rights.mineral_rights_owner && (
                         <div>
-                          <span className="text-muted-foreground">Mineral Rights:</span>
-                          <p className="font-medium">{rights.mineral_rights_owner}</p>
+                          <div>
+                            <span className="text-muted-foreground">Mineral Rights:</span>
+                            <p className="font-medium">{rights.mineral_rights_owner}</p>
+                          </div>
+                          {rights.mineral_rights_confidence && (
+                            <p className="text-xs text-muted-foreground mt-1">
+                              ({rights.mineral_rights_confidence}, {rights.mineral_rights_source || 'unknown source'})
+                            </p>
+                          )}
+                          {rights.mineral_rights_evidence && (
+                            <p className="text-xs text-muted-foreground mt-1 italic">
+                              {rights.mineral_rights_evidence}
+                            </p>
+                          )}
                         </div>
                       )}
                       {rights.easements && (
@@ -534,6 +602,34 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
           </div>
         </SheetContent>
       </Sheet>
+
+      {/* Qualify Confirmation Modal */}
+      <Dialog open={qualifyConfirmOpen} onOpenChange={setQualifyConfirmOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Qualification</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              This parcel is marked as Data Center use but does not have a confirmed MW value.
+            </p>
+            <p className="text-sm font-medium">
+              Are you sure you want to proceed with qualification?
+            </p>
+            <p className="text-xs text-muted-foreground">
+              A task will be automatically created to request utility confirmation.
+            </p>
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => setQualifyConfirmOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleQualify} disabled={loading}>
+                Proceed
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={disqualifyOpen} onOpenChange={setDisqualifyOpen}>
         <DialogContent>

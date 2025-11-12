@@ -220,6 +220,40 @@ Deno.serve(async (req) => {
       
       for (const listing of listings) {
         try {
+          const description = listing.description || '';
+          
+          // Parse MW/kV/MVA from listing
+          const mwMatch = description.match(/(\d+)\s*(MW|mw|megawatt)/i);
+          const kvMatch = description.match(/(\d+)\s*(kV|kv|kilovolt)/i);
+          const mvaMatch = description.match(/(\d+)\s*(MVA|mva)/i);
+          
+          let available_mw = null;
+          let mw_confidence: string | null = null;
+          let mw_evidence = '';
+          
+          if (mwMatch) {
+            available_mw = parseInt(mwMatch[1]);
+            mw_confidence = 'high';
+            mw_evidence = `Explicit MW stated: "${mwMatch[0]}"`;
+          } else if (kvMatch) {
+            const kv = parseInt(kvMatch[1]);
+            available_mw = Math.floor(kv * 0.8); // rough estimate
+            mw_confidence = 'medium';
+            mw_evidence = `Inferred from ${kv}kV substation`;
+          } else if (mvaMatch) {
+            available_mw = parseInt(mvaMatch[1]);
+            mw_confidence = 'medium';
+            mw_evidence = `Converted from ${mvaMatch[0]}`;
+          }
+          
+          // Parse throttling keywords
+          const throttlingKeywords = ['curtailment', 'load shed', 'peak constraint', 'summer limit'];
+          const hasThrottling = throttlingKeywords.some(kw => description.toLowerCase().includes(kw));
+          
+          // Parse gas/battery allowances
+          const gasAllowed = /natural\s+gas\s+(allowed|permitted)/i.test(description);
+          const batteryAllowed = /bess|battery\s+storage\s+(allowed|permitted)/i.test(description);
+          
           // Create parcel record
           const { data: parcel, error: parcelError } = await supabase
             .from('parcels')
@@ -238,6 +272,7 @@ Deno.serve(async (req) => {
               listing_url: listing.listingUrl,
               status: 'Sourcing',
               prospect_notes: `Source: ${listing.source}\n${listing.description || ''}`,
+              enrichment_status: 'pending'
             })
             .select()
             .single();
@@ -245,6 +280,23 @@ Deno.serve(async (req) => {
           if (parcelError) {
             console.error('Error creating parcel:', parcelError);
             continue;
+          }
+          
+          // Create utilities record with parsed data
+          if (available_mw || hasThrottling || gasAllowed || batteryAllowed) {
+            await supabase.from('parcel_utilities').insert({
+              parcel_id: parcel.id,
+              available_mw_estimate: available_mw,
+              available_mw_source: available_mw ? 'listing' : null,
+              available_mw_confidence: mw_confidence,
+              available_mw_evidence: mw_evidence || null,
+              throttling_risk: hasThrottling ? 'high' : null,
+              throttling_source: hasThrottling ? 'listing' : null,
+              throttling_confidence: hasThrottling ? 'high' : null,
+              gas_batteries_allowed: gasAllowed || batteryAllowed || null,
+              gas_batteries_source: (gasAllowed || batteryAllowed) ? 'listing' : null,
+              gas_batteries_confidence: (gasAllowed || batteryAllowed) ? 'high' : null,
+            });
           }
 
           importedIds.push(parcel.id);

@@ -10,18 +10,53 @@ interface GeocodeResult {
   lng: number;
   county?: string;
   zip?: string;
+  formatted_address: string;
 }
 
-async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
+function normalizeAddress(p: any): string {
+  return `${(p.address||'').trim()}|${(p.city||'').trim()}|${(p.state||'').trim()}|${(p.zip||'').trim()}`.toLowerCase();
+}
+
+async function sha1(input: string): Promise<string> {
+  const encoder = new TextEncoder();
+  const data = encoder.encode(input);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function geocodeAddress(supabase: any, parcel: any): Promise<GeocodeResult | null> {
   const apiKey = Deno.env.get('GOOGLE_MAPS_KEY');
   if (!apiKey) {
     console.error('GOOGLE_MAPS_KEY not configured');
     return null;
   }
 
+  // Check cache first
+  const addr = normalizeAddress(parcel);
+  const addressHash = await sha1(addr);
+  
+  const { data: cached } = await supabase
+    .from('geocode_cache')
+    .select('*')
+    .eq('address_hash', addressHash)
+    .maybeSingle();
+
+  if (cached && !parcel.force_refresh) {
+    console.log('Using cached geocode for:', parcel.address);
+    return {
+      lat: cached.lat,
+      lng: cached.lon,
+      county: cached.county,
+      zip: cached.zip,
+      formatted_address: cached.formatted_address
+    };
+  }
+
   try {
+    const fullAddress = `${parcel.address}, ${parcel.city}, ${parcel.state} ${parcel.zip || ''}`;
     const response = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${apiKey}`
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(fullAddress)}&key=${apiKey}`
     );
     const data = await response.json();
 
@@ -41,11 +76,24 @@ async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
         }
       }
 
+      // Cache the result
+      await supabase.from('geocode_cache').upsert({
+        address_hash: addressHash,
+        formatted_address: result.formatted_address,
+        lat: location.lat,
+        lon: location.lng,
+        county: county || null,
+        zip: zip || null,
+        raw: data,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'address_hash' });
+
       return {
         lat: location.lat,
         lng: location.lng,
         county: county || undefined,
         zip: zip || undefined,
+        formatted_address: result.formatted_address
       };
     }
   } catch (error) {
@@ -55,7 +103,22 @@ async function geocodeAddress(address: string): Promise<GeocodeResult | null> {
   return null;
 }
 
-function enrichUtilitiesByRegion(state: string, county: string): any {
+async function enrichUtilitiesByRegion(supabase: any, parcel: any, existingUtilities: any): Promise<any> {
+  // Never overwrite explicit listing data
+  if (existingUtilities?.available_mw_source === 'listing') {
+    console.log('Skipping MW inference - explicit listing data present');
+    return {};
+  }
+
+  const state = parcel.state;
+  const county = parcel.county || '';
+  
+  // Substation reference data for proximity heuristics
+  const substationData: Record<string, any> = {
+    'Dallas': { name: 'Oncor Lancaster Sub', distance_mi: 2.5, typical_mw: 50 },
+    'Collin': { name: 'Oncor McKinney Sub', distance_mi: 3.0, typical_mw: 40 },
+  };
+
   const rules: Record<string, any> = {
     TX: {
       default: {
@@ -66,8 +129,9 @@ function enrichUtilitiesByRegion(state: string, county: string): any {
       },
       Dallas: {
         grid_operator: 'Oncor',
-        available_mw_estimate: 50,
-        nearest_substation_distance_mi: 2.5,
+        throttling_risk: 'low',
+        throttling_source: 'region',
+        throttling_confidence: 'medium',
       },
     },
     CA: {
@@ -76,6 +140,9 @@ function enrichUtilitiesByRegion(state: string, county: string): any {
         water_provider: 'Local Water District',
         gas_provider: 'SoCal Gas / PG&E',
         fiber_provider: 'AT&T / Frontier',
+        throttling_risk: 'high',
+        throttling_source: 'region',
+        throttling_confidence: 'high',
       },
     },
   };
@@ -83,12 +150,27 @@ function enrichUtilitiesByRegion(state: string, county: string): any {
   const stateRules = rules[state] || {};
   const countyRules = stateRules[county] || {};
   const defaultRules = stateRules.default || {};
+  
+  const enriched = { ...defaultRules, ...countyRules };
 
-  return { ...defaultRules, ...countyRules };
+  // Proximity-based MW inference
+  if (!existingUtilities?.available_mw_estimate && substationData[county]) {
+    const sub = substationData[county];
+    enriched.nearest_substation_name = sub.name;
+    enriched.nearest_substation_distance_mi = sub.distance_mi;
+    enriched.available_mw_estimate = sub.typical_mw;
+    enriched.available_mw_source = 'proximity';
+    enriched.available_mw_confidence = 'low';
+    enriched.available_mw_evidence = `Inferred from ${sub.name} proximity`;
+  }
+
+  return enriched;
 }
 
-function enrichZoningByRegion(state: string, zoning_code?: string): any {
-  const basicRules: any = {
+async function enrichZoningRights(supabase: any, parcel_id: string, parcel: any): Promise<void> {
+  const zoning_code = parcel.zoning_code;
+  
+  const zoningRules: any = {
     residential_allowed: true,
     commercial_allowed: false,
     data_center_allowed: false,
@@ -97,16 +179,54 @@ function enrichZoningByRegion(state: string, zoning_code?: string): any {
 
   if (zoning_code) {
     if (zoning_code.includes('M') || zoning_code.includes('I')) {
-      basicRules.commercial_allowed = true;
-      basicRules.data_center_allowed = true;
-      basicRules.entitlement_speed = 'Fast (industrial)';
+      zoningRules.commercial_allowed = true;
+      zoningRules.data_center_allowed = true;
+      zoningRules.entitlement_speed = 'Fast (industrial)';
     } else if (zoning_code.includes('C')) {
-      basicRules.commercial_allowed = true;
-      basicRules.entitlement_speed = 'Moderate';
+      zoningRules.commercial_allowed = true;
+      zoningRules.entitlement_speed = 'Moderate';
     }
   }
 
-  return basicRules;
+  await supabase
+    .from('parcel_zoning')
+    .upsert({ parcel_id, ...zoningRules }, { onConflict: 'parcel_id' });
+
+  // Check for explicit mineral rights in listing
+  const listingText = parcel.prospect_notes || '';
+  const hasMineralRights = /mineral\s+rights\s+(included|conveyed|retained)/i.test(listingText);
+  
+  const rightsData: any = {
+    parcel_id,
+    easements: 'Unknown',
+    restrictions: 'Unknown',
+  };
+
+  if (hasMineralRights) {
+    rightsData.mineral_rights_owner = 'Seller/Owner';
+    rightsData.mineral_rights_source = 'listing';
+    rightsData.mineral_rights_confidence = 'high';
+    rightsData.mineral_rights_evidence = 'Explicitly stated in listing text';
+  } else {
+    rightsData.mineral_rights_owner = 'Unknown - requires title search';
+    rightsData.mineral_rights_source = 'default';
+    rightsData.mineral_rights_confidence = 'unknown';
+    
+    // Auto-create verification task
+    await supabase.from('tasks').insert({
+      subject: `Verify mineral rights: ${parcel.name || parcel.address}`,
+      related_type: 'parcel',
+      related_id: parcel_id,
+      status: 'Not_Started',
+      priority: 'Med',
+      owner_user_id: parcel.created_by || parcel.prospect_owner,
+      due_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+    });
+  }
+
+  await supabase
+    .from('parcel_rights')
+    .upsert(rightsData, { onConflict: 'parcel_id' });
 }
 
 function calculateScores(parcel: any, utilities: any, zoning: any, rights: any, topo: any): any {
@@ -166,14 +286,24 @@ Deno.serve(async (req) => {
 
     let updates: any = {};
 
-    // 1. Geocode if missing lat/lon
-    if (!parcel.latitude || !parcel.longitude) {
-      const fullAddress = `${parcel.address}, ${parcel.city}, ${parcel.state} ${parcel.zip || ''}`;
-      const geocoded = await geocodeAddress(fullAddress);
+    // Check if enrichment needed
+    const { data: settings } = await supabase.from('ops_settings').select('*');
+    const settingsMap = (settings || []).reduce((acc: any, s: any) => {
+      acc[s.key] = s.value;
+      return acc;
+    }, {});
+    
+    const onlyWhenMissing = settingsMap.ENRICH_ONLY_WHEN_MISSING === 'true';
+
+    // 1. Geocode if missing or forced
+    if (!parcel.latitude || !parcel.longitude || parcel.force_refresh) {
+      const geocoded = await geocodeAddress(supabase, parcel);
       
       if (geocoded) {
+        const addr = normalizeAddress(parcel);
         updates.latitude = geocoded.lat;
         updates.longitude = geocoded.lng;
+        updates.address_hash = await sha1(addr);
         if (geocoded.county && !parcel.county) updates.county = geocoded.county;
         if (geocoded.zip && !parcel.zip) updates.zip = geocoded.zip;
       }
@@ -185,34 +315,22 @@ Deno.serve(async (req) => {
       Object.assign(parcel, updates);
     }
 
-    // 2. Enrich utilities
-    const utilityData = enrichUtilitiesByRegion(parcel.state, parcel.county || '');
-    const { error: utilError } = await supabase
+    // 2. Enrich utilities (check existing first)
+    const { data: existingUtil } = await supabase
       .from('parcel_utilities')
-      .upsert({ parcel_id, ...utilityData }, { onConflict: 'parcel_id' });
-    
-    if (utilError) console.error('Utility upsert error:', utilError);
+      .select('*')
+      .eq('parcel_id', parcel_id)
+      .maybeSingle();
 
-    // 3. Enrich zoning
-    const zoningData = enrichZoningByRegion(parcel.state, parcel.zoning_code);
-    const { error: zoneError } = await supabase
-      .from('parcel_zoning')
-      .upsert({ parcel_id, ...zoningData }, { onConflict: 'parcel_id' });
-    
-    if (zoneError) console.error('Zoning upsert error:', zoneError);
+    const utilityData = await enrichUtilitiesByRegion(supabase, parcel, existingUtil);
+    if (Object.keys(utilityData).length > 0) {
+      await supabase
+        .from('parcel_utilities')
+        .upsert({ parcel_id, ...utilityData }, { onConflict: 'parcel_id' });
+    }
 
-    // 4. Create basic rights record
-    const { error: rightsError } = await supabase
-      .from('parcel_rights')
-      .upsert({ 
-        parcel_id,
-        mineral_rights_owner: 'Unknown - requires title search',
-        easements: 'Unknown',
-        restrictions: 'Unknown',
-        notes: 'Pending research'
-      }, { onConflict: 'parcel_id' });
-    
-    if (rightsError) console.error('Rights upsert error:', rightsError);
+    // 3. Enrich zoning & rights (with smart mineral rights detection)
+    await enrichZoningRights(supabase, parcel_id, parcel);
 
     // 5. Create basic topography record if missing
     const { error: topoError } = await supabase
@@ -262,7 +380,13 @@ Deno.serve(async (req) => {
 
     await supabase
       .from('parcels')
-      .update({ ...scores, best_use })
+      .update({ 
+        ...scores, 
+        best_use,
+        enrichment_status: 'ok',
+        last_enriched_at: new Date().toISOString(),
+        force_refresh: false
+      })
       .eq('id', parcel_id);
 
     console.log('Enrichment complete:', { parcel_id, scores, best_use });
