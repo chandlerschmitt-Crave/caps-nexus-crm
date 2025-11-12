@@ -121,6 +121,7 @@ export type Database = {
           package_id: string
           percent_complete: number | null
           revised_budget: number | null
+          section: string | null
           variance: number | null
         }
         Insert: {
@@ -137,6 +138,7 @@ export type Database = {
           package_id: string
           percent_complete?: number | null
           revised_budget?: number | null
+          section?: string | null
           variance?: number | null
         }
         Update: {
@@ -153,6 +155,7 @@ export type Database = {
           package_id?: string
           percent_complete?: number | null
           revised_budget?: number | null
+          section?: string | null
           variance?: number | null
         }
         Relationships: [
@@ -238,6 +241,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "budget_lines"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "commitment_lines_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "v_draw_continuation"
+            referencedColumns: ["budget_line_id"]
           },
           {
             foreignKeyName: "commitment_lines_commitment_id_fkey"
@@ -534,9 +544,11 @@ export type Database = {
           id: string
           notes: string | null
           percent_complete: number | null
+          prior_to_date: number | null
           retainage_this_period: number | null
           this_period: number | null
           to_date: number | null
+          to_date_after: number | null
         }
         Insert: {
           budget_line_id?: string | null
@@ -544,9 +556,11 @@ export type Database = {
           id?: string
           notes?: string | null
           percent_complete?: number | null
+          prior_to_date?: number | null
           retainage_this_period?: number | null
           this_period?: number | null
           to_date?: number | null
+          to_date_after?: number | null
         }
         Update: {
           budget_line_id?: string | null
@@ -554,9 +568,11 @@ export type Database = {
           id?: string
           notes?: string | null
           percent_complete?: number | null
+          prior_to_date?: number | null
           retainage_this_period?: number | null
           this_period?: number | null
           to_date?: number | null
+          to_date_after?: number | null
         }
         Relationships: [
           {
@@ -567,11 +583,25 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "draw_lines_budget_line_id_fkey"
+            columns: ["budget_line_id"]
+            isOneToOne: false
+            referencedRelation: "v_draw_continuation"
+            referencedColumns: ["budget_line_id"]
+          },
+          {
             foreignKeyName: "draw_lines_draw_id_fkey"
             columns: ["draw_id"]
             isOneToOne: false
             referencedRelation: "draws"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "draw_lines_draw_id_fkey"
+            columns: ["draw_id"]
+            isOneToOne: false
+            referencedRelation: "v_draw_continuation"
+            referencedColumns: ["draw_id"]
           },
         ]
       }
@@ -581,6 +611,7 @@ export type Database = {
           bank_reference: string | null
           created_at: string | null
           draw_no: number
+          file_url: string | null
           funded: number | null
           id: string
           package_id: string
@@ -594,6 +625,7 @@ export type Database = {
           bank_reference?: string | null
           created_at?: string | null
           draw_no: number
+          file_url?: string | null
           funded?: number | null
           id?: string
           package_id: string
@@ -607,6 +639,7 @@ export type Database = {
           bank_reference?: string | null
           created_at?: string | null
           draw_no?: number
+          file_url?: string | null
           funded?: number | null
           id?: string
           package_id?: string
@@ -1598,7 +1631,31 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_draw_continuation: {
+        Row: {
+          budget_line_id: string | null
+          code: string | null
+          draw_id: string | null
+          name: string | null
+          package_id: string | null
+          percent_complete: number | null
+          prior_to_date: number | null
+          remaining: number | null
+          revised_budget: number | null
+          section: string | null
+          this_period: number | null
+          to_date: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "draws_package_id_fkey"
+            columns: ["package_id"]
+            isOneToOne: false
+            referencedRelation: "construction_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {

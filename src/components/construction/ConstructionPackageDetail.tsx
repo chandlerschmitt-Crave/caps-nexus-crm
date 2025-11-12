@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { HardHat, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
 import { BudgetTab } from './tabs/BudgetTab';
+import { DrawsTab } from './tabs/DrawsTab';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ConstructionPackageDetailProps {
@@ -225,11 +226,7 @@ export function ConstructionPackageDetail({
             </TabsContent>
             
             <TabsContent value="draws" className="mt-4">
-              <Card>
-                <CardContent className="py-8">
-                  <p className="text-center text-muted-foreground">Draws coming soon</p>
-                </CardContent>
-              </Card>
+              <DrawsTab packageId={packageId} onUpdate={loadPackageDetails} />
             </TabsContent>
           </Tabs>
         </div>
