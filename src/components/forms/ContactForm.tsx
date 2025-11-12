@@ -14,13 +14,6 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 
 const contactSchema = z.object({
@@ -30,9 +23,9 @@ const contactSchema = z.object({
   phone: z.string().trim().max(20).optional().or(z.literal('')),
   title: z.string().trim().max(100).optional().or(z.literal('')),
   linkedin_url: z.string().trim().url('Invalid LinkedIn URL').max(255).optional().or(z.literal('')),
-  role: z.string().optional(),
+  role: z.string().trim().max(100).optional().or(z.literal('')),
   communication_style: z.string().trim().max(500).optional().or(z.literal('')),
-  account_id: z.string().uuid('Please select an account'),
+  account_name: z.string().trim().min(1, 'Company name is required').max(200),
 });
 
 type ContactFormValues = z.infer<typeof contactSchema>;
@@ -45,7 +38,6 @@ interface ContactFormProps {
 
 export function ContactForm({ contactId, onSuccess, onCancel }: ContactFormProps) {
   const [loading, setLoading] = useState(false);
-  const [accounts, setAccounts] = useState<Array<{ id: string; name: string; type: string }>>([]);
   const { toast } = useToast();
 
   const form = useForm<ContactFormValues>({
@@ -59,30 +51,21 @@ export function ContactForm({ contactId, onSuccess, onCancel }: ContactFormProps
       linkedin_url: '',
       role: '',
       communication_style: '',
-      account_id: '',
+      account_name: '',
     },
   });
 
   useEffect(() => {
-    loadAccounts();
     if (contactId) {
       loadContact();
     }
   }, [contactId]);
 
-  const loadAccounts = async () => {
-    const { data } = await supabase
-      .from('accounts')
-      .select('id, name, type')
-      .order('name');
-    setAccounts(data || []);
-  };
-
   const loadContact = async () => {
     if (!contactId) return;
     const { data } = await supabase
       .from('contacts')
-      .select('*')
+      .select('*, accounts(name)')
       .eq('id', contactId)
       .single();
     
@@ -96,7 +79,7 @@ export function ContactForm({ contactId, onSuccess, onCancel }: ContactFormProps
         linkedin_url: data.linkedin_url || '',
         role: data.role || '',
         communication_style: data.communication_style || '',
-        account_id: data.account_id,
+        account_name: (data.accounts as any)?.name || '',
       });
     }
   };
@@ -104,6 +87,27 @@ export function ContactForm({ contactId, onSuccess, onCancel }: ContactFormProps
   const onSubmit = async (values: ContactFormValues) => {
     setLoading(true);
     try {
+      // Find or create account
+      let accountId: string;
+      const { data: existingAccount } = await supabase
+        .from('accounts')
+        .select('id')
+        .ilike('name', values.account_name)
+        .single();
+
+      if (existingAccount) {
+        accountId = existingAccount.id;
+      } else {
+        const { data: newAccount, error: accountError } = await supabase
+          .from('accounts')
+          .insert([{ name: values.account_name, type: 'Investor' }])
+          .select('id')
+          .single();
+        
+        if (accountError) throw accountError;
+        accountId = newAccount.id;
+      }
+
       const contactData = {
         first_name: values.first_name,
         last_name: values.last_name,
@@ -113,7 +117,7 @@ export function ContactForm({ contactId, onSuccess, onCancel }: ContactFormProps
         linkedin_url: values.linkedin_url || null,
         role: (values.role as any) || null,
         communication_style: values.communication_style || null,
-        account_id: values.account_id,
+        account_id: accountId,
       };
 
       let error;
@@ -181,24 +185,13 @@ export function ContactForm({ contactId, onSuccess, onCancel }: ContactFormProps
 
         <FormField
           control={form.control}
-          name="account_id"
+          name="account_name"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Account/Firm *</FormLabel>
-              <Select onValueChange={field.onChange} value={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select an account" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.name} ({account.type})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormLabel>Company/Firm *</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., TerraQore, Goldman Sachs" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
@@ -255,25 +248,9 @@ export function ContactForm({ contactId, onSuccess, onCancel }: ContactFormProps
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Role</FormLabel>
-                <Select onValueChange={field.onChange} value={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select role" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    <SelectItem value="Investor">Investor</SelectItem>
-                    <SelectItem value="LP">LP</SelectItem>
-                    <SelectItem value="GP">GP</SelectItem>
-                    <SelectItem value="Broker">Broker</SelectItem>
-                    <SelectItem value="CIO">CIO</SelectItem>
-                    <SelectItem value="CTO">CTO</SelectItem>
-                    <SelectItem value="Advisor">Advisor</SelectItem>
-                    <SelectItem value="GC">GC</SelectItem>
-                    <SelectItem value="Vendor">Vendor</SelectItem>
-                    <SelectItem value="Prospect">Prospect</SelectItem>
-                  </SelectContent>
-                </Select>
+                <FormControl>
+                  <Input placeholder="e.g., Investor, LP, GP, Broker" {...field} />
+                </FormControl>
                 <FormMessage />
               </FormItem>
             )}

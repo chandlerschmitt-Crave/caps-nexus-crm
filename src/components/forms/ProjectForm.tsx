@@ -29,7 +29,7 @@ interface ProjectFormProps {
 
 interface ProjectFormData {
   name: string;
-  account_id: string;
+  account_name: string;
   project_type: 'AI_Data_Center' | 'Luxury_Res' | 'Tokenized_Fund';
   market?: string;
   description?: string;
@@ -37,40 +37,51 @@ interface ProjectFormData {
   stage: 'Ideation' | 'Pre-Dev' | 'Raising' | 'Entitlements' | 'Construction' | 'Stabilization' | 'Exit';
 }
 
-interface Account {
-  id: string;
-  name: string;
-}
-
 export function ProjectForm({ open, onOpenChange, onSuccess }: ProjectFormProps) {
   const { register, handleSubmit, reset, setValue, watch } = useForm<ProjectFormData>({
     defaultValues: { stage: 'Ideation' }
   });
   const [loading, setLoading] = useState(false);
-  const [accounts, setAccounts] = useState<Account[]>([]);
   const { toast } = useToast();
   
   const projectType = watch('project_type');
-  const accountId = watch('account_id');
   const stage = watch('stage');
-
-  useEffect(() => {
-    loadAccounts();
-  }, []);
-
-  const loadAccounts = async () => {
-    const { data } = await supabase
-      .from('accounts')
-      .select('id, name')
-      .order('name');
-    
-    setAccounts(data || []);
-  };
 
   const onSubmit = async (data: ProjectFormData) => {
     setLoading(true);
     try {
-      const { error } = await supabase.from('projects').insert([data]);
+      // Find or create account
+      let accountId: string;
+      const { data: existingAccount } = await supabase
+        .from('accounts')
+        .select('id')
+        .ilike('name', data.account_name)
+        .single();
+
+      if (existingAccount) {
+        accountId = existingAccount.id;
+      } else {
+        const { data: newAccount, error: accountError } = await supabase
+          .from('accounts')
+          .insert([{ name: data.account_name, type: 'DevCo' }])
+          .select('id')
+          .single();
+        
+        if (accountError) throw accountError;
+        accountId = newAccount.id;
+      }
+
+      const projectData = {
+        name: data.name,
+        account_id: accountId,
+        project_type: data.project_type,
+        market: data.market,
+        description: data.description,
+        est_total_cost: data.est_total_cost,
+        stage: data.stage,
+      };
+
+      const { error } = await supabase.from('projects').insert([projectData]);
 
       if (error) throw error;
 
@@ -115,19 +126,12 @@ export function ProjectForm({ open, onOpenChange, onSuccess }: ProjectFormProps)
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="account_id">Account *</Label>
-              <Select onValueChange={(value) => setValue('account_id', value)} value={accountId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select account" />
-                </SelectTrigger>
-                <SelectContent>
-                  {accounts.map((account) => (
-                    <SelectItem key={account.id} value={account.id}>
-                      {account.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="account_name">Account/Company *</Label>
+              <Input
+                id="account_name"
+                {...register('account_name', { required: true })}
+                placeholder="e.g., TerraQore, CAPS"
+              />
             </div>
 
             <div className="space-y-2">

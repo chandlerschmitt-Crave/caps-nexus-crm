@@ -33,7 +33,7 @@ const propertySchema = z.object({
   total_cost: z.string().optional(),
   target_resale_value: z.string().optional(),
   status: z.string().min(1, 'Status is required'),
-  project_id: z.string().uuid('Please select a project'),
+  project_name: z.string().trim().min(1, 'Project name is required').max(200),
 });
 
 type PropertyFormValues = z.infer<typeof propertySchema>;
@@ -45,7 +45,6 @@ interface PropertyFormProps {
 
 export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
   const [loading, setLoading] = useState(false);
-  const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([]);
   const { toast } = useToast();
 
   const form = useForm<PropertyFormValues>({
@@ -60,25 +59,33 @@ export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
       total_cost: '',
       target_resale_value: '',
       status: 'Sourcing',
-      project_id: '',
+      project_name: '',
     },
   });
-
-  useEffect(() => {
-    loadProjects();
-  }, []);
-
-  const loadProjects = async () => {
-    const { data } = await supabase
-      .from('projects')
-      .select('id, name')
-      .order('name');
-    setProjects(data || []);
-  };
 
   const onSubmit = async (values: PropertyFormValues) => {
     setLoading(true);
     try {
+      // Find or create project
+      let projectId: string;
+      const { data: existingProject } = await supabase
+        .from('projects')
+        .select('id')
+        .ilike('name', values.project_name)
+        .single();
+
+      if (existingProject) {
+        projectId = existingProject.id;
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Project not found. Please create the project first.',
+          variant: 'destructive',
+        });
+        setLoading(false);
+        return;
+      }
+
       const propertyData = {
         address: values.address,
         city: values.city,
@@ -89,7 +96,7 @@ export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
         total_cost: values.total_cost ? parseFloat(values.total_cost) : null,
         target_resale_value: values.target_resale_value ? parseFloat(values.target_resale_value) : null,
         status: values.status as any,
-        project_id: values.project_id,
+        project_id: projectId,
       };
 
       const { error } = await supabase.from('properties').insert([propertyData]);
@@ -177,24 +184,13 @@ export function PropertyForm({ onSuccess, onCancel }: PropertyFormProps) {
 
         <FormField
           control={form.control}
-          name="project_id"
+          name="project_name"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Project *</FormLabel>
-              <Select onValueChange={field.onChange} defaultValue={field.value}>
-                <FormControl>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a project" />
-                  </SelectTrigger>
-                </FormControl>
-                <SelectContent>
-                  {projects.map((project) => (
-                    <SelectItem key={project.id} value={project.id}>
-                      {project.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <FormControl>
+                <Input placeholder="e.g., Malibu Phoenix Fund" {...field} />
+              </FormControl>
               <FormMessage />
             </FormItem>
           )}
