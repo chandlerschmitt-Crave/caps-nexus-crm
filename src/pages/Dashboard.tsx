@@ -59,9 +59,9 @@ export default function Dashboard() {
     // Get all closed won deals from investor accounts
     const { data: closedDeals } = await supabase
       .from('deals')
-      .select('id, name, amount_target, close_date, instrument, account:accounts!inner(name, type)')
+      .select('id, name, amount_target, close_date, instrument, account:accounts!inner(name, type_of_account)')
       .eq('stage', 'Closed_Won')
-      .in('account.type', ['Investor', 'Fund', 'HoldCo'])
+      .in('account.type_of_account', ['Investor', 'Fund', 'HoldCo'])
       .order('close_date', { ascending: false })
       .limit(5);
 
@@ -73,7 +73,7 @@ export default function Dashboard() {
     const { data: investors } = await supabase
       .from('accounts')
       .select('id')
-      .in('type', ['Investor', 'Fund', 'HoldCo']);
+      .in('type_of_account', ['Investor', 'Fund', 'HoldCo']);
 
     const investorCount = investors?.length || 0;
     const avgInvestment = investorCount > 0 ? totalInvested / investorCount : 0;

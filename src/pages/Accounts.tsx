@@ -10,7 +10,7 @@ import { AccountForm } from '@/components/forms/AccountForm';
 interface Account {
   id: string;
   name: string;
-  type: string;
+  type_of_account: string | null;
   website: string | null;
   phone: string | null;
   city: string | null;
@@ -66,9 +66,11 @@ export default function Accounts() {
                       <Building2 className="h-5 w-5 text-primary" />
                       <h3 className="font-semibold">{account.name}</h3>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      {account.type.replace('_', ' ')}
-                    </Badge>
+                    {account.type_of_account && (
+                      <Badge variant="secondary" className="text-xs">
+                        {account.type_of_account.replace('_', ' ')}
+                      </Badge>
+                    )}
                   </div>
                 </div>
 

@@ -25,7 +25,7 @@ interface Contact {
   role: string | null;
   linkedin_url: string | null;
   communication_style: string | null;
-  account: { name: string; type: string } | null;
+  account: { name: string; type_of_account: string | null } | null;
 }
 
 export default function Contacts() {
@@ -40,7 +40,7 @@ export default function Contacts() {
   const loadContacts = async () => {
     const { data } = await supabase
       .from('contacts')
-      .select('*, account:accounts(name, type)')
+      .select('*, account:accounts(name, type_of_account)')
       .order('last_name');
 
     setContacts(data || []);
@@ -127,9 +127,11 @@ export default function Contacts() {
                           <Building2 className="h-4 w-4 text-muted-foreground" />
                           <div>
                             <div className="text-sm">{contact.account.name}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {contact.account.type}
-                            </div>
+                            {contact.account.type_of_account && (
+                              <div className="text-xs text-muted-foreground">
+                                {contact.account.type_of_account}
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}

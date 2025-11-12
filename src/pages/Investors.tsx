@@ -10,7 +10,7 @@ import { Building2, MapPin, Phone, Globe, Plus, Users } from 'lucide-react';
 interface Investor {
   id: string;
   name: string;
-  type: string;
+  type_of_account: string | null;
   city: string | null;
   state: string | null;
   country: string | null;
@@ -32,7 +32,7 @@ export default function Investors() {
     const { data } = await supabase
       .from('accounts')
       .select('*')
-      .in('type', ['Investor', 'Fund', 'HoldCo'])
+      .in('type_of_account', ['Investor', 'Fund', 'HoldCo'])
       .order('name');
 
     // Get contact counts for each investor
@@ -99,9 +99,11 @@ export default function Investors() {
                       <CardTitle className="text-base mb-2">
                         {investor.name}
                       </CardTitle>
-                      <Badge variant="secondary" className="text-xs">
-                        {investor.type}
-                      </Badge>
+                      {investor.type_of_account && (
+                        <Badge variant="secondary" className="text-xs">
+                          {investor.type_of_account}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </CardHeader>

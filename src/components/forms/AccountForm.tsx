@@ -29,7 +29,7 @@ interface AccountFormProps {
 
 interface AccountFormData {
   name: string;
-  type: 'DevCo' | 'HoldCo' | 'Fund' | 'Investor' | 'Lender' | 'Partner' | 'Agency';
+  type_of_account?: string;
   website?: string;
   phone?: string;
   city?: string;
@@ -39,10 +39,9 @@ interface AccountFormData {
 }
 
 export function AccountForm({ open, onOpenChange, onSuccess }: AccountFormProps) {
-  const { register, handleSubmit, reset, setValue, watch } = useForm<AccountFormData>();
+  const { register, handleSubmit, reset } = useForm<AccountFormData>();
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-  const accountType = watch('type');
 
   const onSubmit = async (data: AccountFormData) => {
     setLoading(true);
@@ -92,21 +91,12 @@ export function AccountForm({ open, onOpenChange, onSuccess }: AccountFormProps)
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="type">Type *</Label>
-              <Select onValueChange={(value) => setValue('type', value as AccountFormData['type'])} value={accountType}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="DevCo">DevCo</SelectItem>
-                  <SelectItem value="HoldCo">HoldCo</SelectItem>
-                  <SelectItem value="Fund">Fund</SelectItem>
-                  <SelectItem value="Investor">Investor</SelectItem>
-                  <SelectItem value="Lender">Lender</SelectItem>
-                  <SelectItem value="Partner">Partner</SelectItem>
-                  <SelectItem value="Agency">Agency</SelectItem>
-                </SelectContent>
-              </Select>
+              <Label htmlFor="type_of_account">Type of Account</Label>
+              <Input
+                id="type_of_account"
+                {...register('type_of_account')}
+                placeholder="e.g., DevCo, Investor, Lender"
+              />
             </div>
 
             <div className="space-y-2">

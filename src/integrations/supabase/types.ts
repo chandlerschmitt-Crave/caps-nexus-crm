@@ -24,7 +24,7 @@ export type Database = {
           notes: string | null
           phone: string | null
           state: string | null
-          type: Database["public"]["Enums"]["account_type"]
+          type_of_account: string | null
           website: string | null
         }
         Insert: {
@@ -36,7 +36,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           state?: string | null
-          type: Database["public"]["Enums"]["account_type"]
+          type_of_account?: string | null
           website?: string | null
         }
         Update: {
@@ -48,7 +48,7 @@ export type Database = {
           notes?: string | null
           phone?: string | null
           state?: string | null
-          type?: Database["public"]["Enums"]["account_type"]
+          type_of_account?: string | null
           website?: string | null
         }
         Relationships: []
