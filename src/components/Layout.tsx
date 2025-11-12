@@ -21,7 +21,7 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Projects', href: '/projects', icon: FolderKanban },
     { name: 'Properties', href: '/properties', icon: Home },
     { name: 'Tasks', href: '/tasks', icon: ListTodo },
-    { name: 'Land Intel', href: '/land-intelligence', icon: MapPin },
+    { name: 'Prospecting', href: '/land-intelligence', icon: MapPin },
   ];
 
   return (

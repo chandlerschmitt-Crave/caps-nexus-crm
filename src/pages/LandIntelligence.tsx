@@ -88,7 +88,7 @@ export default function LandIntelligence() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Land Intelligence</h1>
+            <h1 className="text-3xl font-bold tracking-tight">Intelligent Land Prospecting</h1>
             <p className="text-muted-foreground">
               Parcel prospecting and enrichment
             </p>
