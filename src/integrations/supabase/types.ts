@@ -353,6 +353,32 @@ export type Database = {
         }
         Relationships: []
       }
+      listing_jsonld: {
+        Row: {
+          parcel_id: string
+          raw: Json | null
+          updated_at: string | null
+        }
+        Insert: {
+          parcel_id: string
+          raw?: Json | null
+          updated_at?: string | null
+        }
+        Update: {
+          parcel_id?: string
+          raw?: Json | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "listing_jsonld_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: true
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notes: {
         Row: {
           content: string
@@ -518,7 +544,10 @@ export type Database = {
           available_mw_estimate: number | null
           available_mw_evidence: string | null
           available_mw_source: string | null
+          comp_price_per_acre: number | null
+          fiber_distance_miles: number | null
           fiber_provider: string | null
+          fiber_providers: string | null
           gas_batteries_allowed: boolean | null
           gas_batteries_confidence: string | null
           gas_batteries_source: string | null
@@ -540,7 +569,10 @@ export type Database = {
           available_mw_estimate?: number | null
           available_mw_evidence?: string | null
           available_mw_source?: string | null
+          comp_price_per_acre?: number | null
+          fiber_distance_miles?: number | null
           fiber_provider?: string | null
+          fiber_providers?: string | null
           gas_batteries_allowed?: boolean | null
           gas_batteries_confidence?: string | null
           gas_batteries_source?: string | null
@@ -562,7 +594,10 @@ export type Database = {
           available_mw_estimate?: number | null
           available_mw_evidence?: string | null
           available_mw_source?: string | null
+          comp_price_per_acre?: number | null
+          fiber_distance_miles?: number | null
           fiber_provider?: string | null
+          fiber_providers?: string | null
           gas_batteries_allowed?: boolean | null
           gas_batteries_confidence?: string | null
           gas_batteries_source?: string | null
@@ -650,23 +685,35 @@ export type Database = {
           acreage: number | null
           address: string | null
           address_hash: string | null
+          address_norm: string | null
           apn: string | null
           asking_price: number | null
           best_use: string | null
+          canonical_url: string | null
           city: string | null
           county: string | null
           created_at: string | null
           created_by: string | null
           deal_id: string | null
+          dom_days_on_market: number | null
           enrichment_status: string | null
           entitlement_notes: string | null
+          flood_zone: string | null
           force_refresh: boolean | null
           id: string
           last_enriched_at: string | null
+          last_seen_at: string | null
+          last_seen_price: number | null
           latitude: number | null
+          listing_contact_email: string | null
+          listing_contact_name: string | null
+          listing_contact_phone: string | null
           listing_url: string | null
           longitude: number | null
           name: string | null
+          near_airport_miles: number | null
+          near_highway_miles: number | null
+          parcel_polygon: string | null
           price_per_acre: number | null
           project_id: string | null
           prospect_confidence_pct: number | null
@@ -675,8 +722,16 @@ export type Database = {
           score_data_center: number | null
           score_luxury: number | null
           score_updated_at: string | null
+          source_listing_id: string | null
+          source_name: string | null
+          source_url: string | null
           state: string | null
           status: string | null
+          url_fingerprint: string | null
+          url_last_checked: string | null
+          url_status: string | null
+          url_title: string | null
+          wildfire_risk_index: number | null
           zip: string | null
           zoning_code: string | null
           zoning_desc: string | null
@@ -685,23 +740,35 @@ export type Database = {
           acreage?: number | null
           address?: string | null
           address_hash?: string | null
+          address_norm?: string | null
           apn?: string | null
           asking_price?: number | null
           best_use?: string | null
+          canonical_url?: string | null
           city?: string | null
           county?: string | null
           created_at?: string | null
           created_by?: string | null
           deal_id?: string | null
+          dom_days_on_market?: number | null
           enrichment_status?: string | null
           entitlement_notes?: string | null
+          flood_zone?: string | null
           force_refresh?: boolean | null
           id?: string
           last_enriched_at?: string | null
+          last_seen_at?: string | null
+          last_seen_price?: number | null
           latitude?: number | null
+          listing_contact_email?: string | null
+          listing_contact_name?: string | null
+          listing_contact_phone?: string | null
           listing_url?: string | null
           longitude?: number | null
           name?: string | null
+          near_airport_miles?: number | null
+          near_highway_miles?: number | null
+          parcel_polygon?: string | null
           price_per_acre?: number | null
           project_id?: string | null
           prospect_confidence_pct?: number | null
@@ -710,8 +777,16 @@ export type Database = {
           score_data_center?: number | null
           score_luxury?: number | null
           score_updated_at?: string | null
+          source_listing_id?: string | null
+          source_name?: string | null
+          source_url?: string | null
           state?: string | null
           status?: string | null
+          url_fingerprint?: string | null
+          url_last_checked?: string | null
+          url_status?: string | null
+          url_title?: string | null
+          wildfire_risk_index?: number | null
           zip?: string | null
           zoning_code?: string | null
           zoning_desc?: string | null
@@ -720,23 +795,35 @@ export type Database = {
           acreage?: number | null
           address?: string | null
           address_hash?: string | null
+          address_norm?: string | null
           apn?: string | null
           asking_price?: number | null
           best_use?: string | null
+          canonical_url?: string | null
           city?: string | null
           county?: string | null
           created_at?: string | null
           created_by?: string | null
           deal_id?: string | null
+          dom_days_on_market?: number | null
           enrichment_status?: string | null
           entitlement_notes?: string | null
+          flood_zone?: string | null
           force_refresh?: boolean | null
           id?: string
           last_enriched_at?: string | null
+          last_seen_at?: string | null
+          last_seen_price?: number | null
           latitude?: number | null
+          listing_contact_email?: string | null
+          listing_contact_name?: string | null
+          listing_contact_phone?: string | null
           listing_url?: string | null
           longitude?: number | null
           name?: string | null
+          near_airport_miles?: number | null
+          near_highway_miles?: number | null
+          parcel_polygon?: string | null
           price_per_acre?: number | null
           project_id?: string | null
           prospect_confidence_pct?: number | null
@@ -745,8 +832,16 @@ export type Database = {
           score_data_center?: number | null
           score_luxury?: number | null
           score_updated_at?: string | null
+          source_listing_id?: string | null
+          source_name?: string | null
+          source_url?: string | null
           state?: string | null
           status?: string | null
+          url_fingerprint?: string | null
+          url_last_checked?: string | null
+          url_status?: string | null
+          url_title?: string | null
+          wildfire_risk_index?: number | null
           zip?: string | null
           zoning_code?: string | null
           zoning_desc?: string | null

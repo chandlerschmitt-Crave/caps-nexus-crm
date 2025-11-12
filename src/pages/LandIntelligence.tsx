@@ -25,6 +25,8 @@ interface Parcel {
   score_luxury: number | null;
   asking_price: number | null;
   listing_url: string | null;
+  canonical_url: string | null;
+  url_status: string | null;
   parcel_utilities?: Array<{ available_mw_estimate: number | null }>;
 }
 
@@ -212,19 +214,25 @@ export default function LandIntelligence() {
                           {parcel.address && `${parcel.address}, `}
                           {parcel.city}, {parcel.state} {parcel.county ? `• ${parcel.county}` : ''}
                         </p>
-                        {parcel.listing_url ? (
+                        {parcel.listing_url || parcel.canonical_url ? (
                           <a 
-                            href={parcel.listing_url} 
+                            href={parcel.canonical_url || parcel.listing_url} 
                             target="_blank" 
                             rel="noopener noreferrer"
-                            className="text-xs text-primary hover:underline"
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
                             onClick={(e) => e.stopPropagation()}
                           >
                             View Listing →
+                            {parcel.url_status && parcel.url_status !== 'valid' && parcel.url_status !== 'unknown' && (
+                              <Badge variant="destructive" className="text-xs h-4 px-1">
+                                {parcel.url_status}
+                              </Badge>
+                            )}
                           </a>
                         ) : (
                           <span className="text-xs text-muted-foreground">Source link unavailable (demo)</span>
                         )}
+
 
                       </div>
                     </div>

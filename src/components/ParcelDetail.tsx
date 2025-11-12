@@ -41,6 +41,7 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
   const [disqualifyReason, setDisqualifyReason] = useState('');
   const [qualifyConfirmOpen, setQualifyConfirmOpen] = useState(false);
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [recheckingUrl, setRecheckingUrl] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -231,6 +232,34 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
     }
   };
 
+  const handleRecheckUrl = async () => {
+    if (!parcelId) return;
+
+    setRecheckingUrl(true);
+    try {
+      const { error } = await supabase.functions.invoke('revalidate-listing-urls', {
+        body: { parcel_id: parcelId },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Link Rechecked',
+        description: 'The listing URL has been revalidated',
+      });
+
+      loadParcelDetails();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setRecheckingUrl(false);
+    }
+  };
+
   if (!parcel) return null;
 
   const getScoreColor = (score: number | null) => {
@@ -296,15 +325,34 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
               </TabsList>
 
               <TabsContent value="summary" className="space-y-4">
-                {parcel.listing_url ? (
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => window.open(parcel.listing_url, '_blank')}
-                  >
-                    <ExternalLink className="mr-2 h-4 w-4" />
-                    View Original Listing
-                  </Button>
+                {parcel.canonical_url || parcel.listing_url ? (
+                  <div className="space-y-2">
+                    <Button
+                      variant="outline"
+                      className="w-full"
+                      onClick={() => window.open(parcel.canonical_url || parcel.listing_url, '_blank')}
+                      disabled={parcel.url_status === 'gone' || parcel.url_status === 'invalid'}
+                    >
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      View Original Listing
+                    </Button>
+                    {parcel.url_status && parcel.url_status !== 'valid' && (
+                      <div className="flex items-center justify-between p-2 border rounded-md bg-muted">
+                        <span className="text-xs text-muted-foreground">
+                          Link status: {parcel.url_status}
+                          {parcel.url_last_checked && ` (checked ${new Date(parcel.url_last_checked).toLocaleDateString()})`}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={handleRecheckUrl}
+                          disabled={recheckingUrl}
+                        >
+                          {recheckingUrl ? 'Checking...' : 'Recheck'}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
                 ) : (
                   <div className="w-full text-center text-xs text-muted-foreground border rounded-md py-2">
                     Source link unavailable (demo)
@@ -317,25 +365,26 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
                     <CardTitle>Overview</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {parcel.listing_url ? (
+                    {(parcel.canonical_url || parcel.listing_url) && (
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Source:</span>
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-primary"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            window.open(parcel.listing_url, '_blank');
-                          }}
-                        >
-                          View Listing <ExternalLink className="ml-1 h-3 w-3" />
-                        </Button>
-                      </div>
-                    ) : (
-                      <div className="flex justify-between items-center">
-                        <span className="text-muted-foreground">Source:</span>
-                        <span className="text-xs text-muted-foreground">Link unavailable (demo)</span>
+                        <div className="flex items-center gap-2">
+                          {parcel.source_name && (
+                            <Badge variant="outline" className="text-xs">{parcel.source_name}</Badge>
+                          )}
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-primary"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              window.open(parcel.canonical_url || parcel.listing_url, '_blank');
+                            }}
+                            disabled={parcel.url_status === 'gone' || parcel.url_status === 'invalid'}
+                          >
+                            View Listing <ExternalLink className="ml-1 h-3 w-3" />
+                          </Button>
+                        </div>
                       </div>
                     )}
 
@@ -349,6 +398,85 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
                         <span className="font-medium">{parcel.best_use.replace('_', ' ')}</span>
                       </div>
                     )}
+                    {parcel.dom_days_on_market && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Days on Market:</span>
+                        <span className="font-medium">{parcel.dom_days_on_market} days</span>
+                      </div>
+                    )}
+                    {parcel.acreage && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Acreage:</span>
+                        <span className="font-medium">{Number(parcel.acreage).toFixed(1)} acres</span>
+                      </div>
+                    )}
+                    {parcel.asking_price && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Price:</span>
+                        <span className="font-medium">
+                          ${Number(parcel.asking_price).toLocaleString()}
+                          {parcel.last_seen_price && parcel.last_seen_price !== parcel.asking_price && (
+                            <span className="text-xs text-muted-foreground ml-1">
+                              (was ${Number(parcel.last_seen_price).toLocaleString()})
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    )}
+                    {parcel.price_per_acre && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Price/Acre:</span>
+                        <span className="font-medium">${Number(parcel.price_per_acre).toLocaleString()}</span>
+                      </div>
+                    )}
+                    {parcel.near_highway_miles && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Highway Distance:</span>
+                        <span className="font-medium">{parcel.near_highway_miles} mi</span>
+                      </div>
+                    )}
+                    {parcel.near_airport_miles && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Airport Distance:</span>
+                        <span className="font-medium">{parcel.near_airport_miles} mi</span>
+                      </div>
+                    )}
+                    {parcel.flood_zone && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Flood Zone:</span>
+                        <Badge variant="outline">{parcel.flood_zone}</Badge>
+                      </div>
+                    )}
+                    {parcel.wildfire_risk_index !== null && parcel.wildfire_risk_index !== undefined && (
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Wildfire Risk:</span>
+                        <Badge variant={parcel.wildfire_risk_index > 6 ? 'destructive' : 'outline'}>
+                          {parcel.wildfire_risk_index}/10
+                        </Badge>
+                      </div>
+                    )}
+                    {(parcel.listing_contact_name || parcel.listing_contact_phone || parcel.listing_contact_email) && (
+                      <div className="space-y-1 pt-2 border-t">
+                        <span className="text-sm font-medium text-muted-foreground">Listing Contact:</span>
+                        {parcel.listing_contact_name && (
+                          <div className="text-sm">{parcel.listing_contact_name}</div>
+                        )}
+                        {parcel.listing_contact_phone && (
+                          <div className="text-sm">
+                            <a href={`tel:${parcel.listing_contact_phone}`} className="text-primary hover:underline">
+                              {parcel.listing_contact_phone}
+                            </a>
+                          </div>
+                        )}
+                        {parcel.listing_contact_email && (
+                          <div className="text-sm">
+                            <a href={`mailto:${parcel.listing_contact_email}`} className="text-primary hover:underline">
+                              {parcel.listing_contact_email}
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Location:</span>
                       <span className="font-medium">{parcel.city}, {parcel.state}</span>
@@ -357,12 +485,6 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">County:</span>
                         <span className="font-medium">{parcel.county}</span>
-                      </div>
-                    )}
-                    {parcel.acreage && (
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Acreage:</span>
-                        <span className="font-medium">{Number(parcel.acreage).toFixed(2)}</span>
                       </div>
                     )}
                     {parcel.apn && (
@@ -539,6 +661,24 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Fiber:</span>
                           <span className="font-medium">{utilities.fiber_provider}</span>
+                        </div>
+                      )}
+                      {utilities.fiber_distance_miles && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Fiber Distance:</span>
+                          <span className="font-medium">{utilities.fiber_distance_miles} mi</span>
+                        </div>
+                      )}
+                      {utilities.fiber_providers && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Fiber Providers:</span>
+                          <span className="font-medium text-sm">{utilities.fiber_providers}</span>
+                        </div>
+                      )}
+                      {utilities.comp_price_per_acre && (
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Comp $/Acre:</span>
+                          <span className="font-medium">${Number(utilities.comp_price_per_acre).toLocaleString()}</span>
                         </div>
                       )}
                       {utilities.notes && (

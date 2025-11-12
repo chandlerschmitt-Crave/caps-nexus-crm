@@ -8,7 +8,8 @@ import { useToast } from '@/hooks/use-toast';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Search, Download, ExternalLink } from 'lucide-react';
+import { Search, Download, ExternalLink, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 interface SearchLandDialogProps {
   open: boolean;
@@ -36,6 +37,7 @@ export function SearchLandDialog({ open, onOpenChange, onSuccess }: SearchLandDi
   const [importing, setImporting] = useState(false);
   const [results, setResults] = useState<LandListing[]>([]);
   const [selectedListings, setSelectedListings] = useState<Set<number>>(new Set());
+  const [importErrors, setImportErrors] = useState<Array<{ listing: string; reason: string }>>([]);
   
   const [filters, setFilters] = useState({
     state: 'TX',
@@ -96,6 +98,7 @@ export function SearchLandDialog({ open, onOpenChange, onSuccess }: SearchLandDi
     }
 
     setImporting(true);
+    setImportErrors([]);
     
     try {
       const { data, error } = await supabase.functions.invoke('search-land', {
@@ -107,15 +110,24 @@ export function SearchLandDialog({ open, onOpenChange, onSuccess }: SearchLandDi
 
       if (error) throw error;
 
+      setImportErrors(data.errors || []);
+
+      const successCount = data.imported || 0;
+      const errorCount = data.errors?.length || 0;
+
       toast({
         title: 'Import Complete',
-        description: `Imported ${data.imported} parcels. Enrichment starting...`,
+        description: `Imported ${successCount} parcels${errorCount > 0 ? `, ${errorCount} failed` : ''}. Enrichment starting...`,
       });
 
-      setResults([]);
-      setSelectedListings(new Set());
-      onSuccess();
-      onOpenChange(false);
+      if (data.imported > 0) {
+        setResults([]);
+        setSelectedListings(new Set());
+        onSuccess();
+        if (data.errors?.length === 0) {
+          onOpenChange(false);
+        }
+      }
     } catch (error: any) {
       toast({
         title: 'Import Failed',
@@ -153,6 +165,13 @@ export function SearchLandDialog({ open, onOpenChange, onSuccess }: SearchLandDi
         </DialogHeader>
 
         <div className="space-y-4">
+          <Alert>
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              <strong>Demo Mode:</strong> Search currently returns sample listings for demonstration. Real listing URLs require web scraping implementation or paid API integration.
+            </AlertDescription>
+          </Alert>
+
           {/* Search Filters */}
           <Card>
             <CardContent className="pt-6">
@@ -242,6 +261,18 @@ export function SearchLandDialog({ open, onOpenChange, onSuccess }: SearchLandDi
                 </Button>
               </div>
 
+              {importErrors.length > 0 && (
+                <div className="space-y-2 mt-4 p-3 border rounded-md bg-destructive/10">
+                  <h4 className="text-sm font-semibold text-destructive">Import Errors:</h4>
+                  {importErrors.map((err, idx) => (
+                    <div key={idx} className="text-xs">
+                      <span className="font-medium">{err.listing}:</span>{' '}
+                      <span className="text-muted-foreground">{err.reason}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {results.map((listing, index) => (
                   <Card 
@@ -279,11 +310,14 @@ export function SearchLandDialog({ open, onOpenChange, onSuccess }: SearchLandDi
                           
                           <div className="flex gap-2 mt-2">
                             <Badge variant="secondary">{listing.source}</Badge>
+                            {!listing.listingUrl && (
+                              <Badge variant="destructive" className="text-xs">Demo - No Link</Badge>
+                            )}
                             {listing.acreage && (
                               <Badge variant="outline">{listing.acreage} acres</Badge>
                             )}
                             {listing.price && (
-                              <Badge className="bg-green-100 text-green-800">
+                              <Badge className="bg-success/20 text-success">
                                 ${(listing.price / 1000000).toFixed(2)}M
                               </Badge>
                             )}
@@ -291,7 +325,7 @@ export function SearchLandDialog({ open, onOpenChange, onSuccess }: SearchLandDi
                               <Badge variant="outline">{listing.zoning}</Badge>
                             )}
                           </div>
-                          
+
                           {listing.description && (
                             <p className="text-sm text-muted-foreground mt-2 line-clamp-2">
                               {listing.description}
