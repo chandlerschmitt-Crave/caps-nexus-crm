@@ -120,10 +120,11 @@ export function AccountDetail({ accountId, open, onOpenChange, onRefresh }: Acco
 
       setProjects(projectsData || []);
 
-      // Load all projects for linking
+      // Load available projects for linking (not already linked to this account)
       const { data: allProjectsData } = await supabase
         .from('projects')
         .select('id, name, project_type, stage')
+        .neq('account_id', accountId)
         .order('name');
 
       setAllProjects(allProjectsData || []);
