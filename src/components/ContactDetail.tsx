@@ -11,7 +11,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, Mail, Phone, Linkedin, Building2, CheckSquare, Link as LinkIcon, FileText } from 'lucide-react';
+import { User, Mail, Phone, Linkedin, Building2, CheckSquare, Link as LinkIcon, FileText, Trash2 } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -59,6 +60,7 @@ export function ContactDetail({ contactId, open, onOpenChange, onRefresh }: Cont
   const [activities, setActivities] = useState<Activity[]>([]);
   const [loading, setLoading] = useState(false);
   const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [taskForm, setTaskForm] = useState<{ subject: string; due_date: string; priority: 'Low' | 'Med' | 'High' }>({ 
     subject: '', 
     due_date: '', 
@@ -166,6 +168,37 @@ export function ContactDetail({ contactId, open, onOpenChange, onRefresh }: Cont
     }
   };
 
+  const handleDelete = async () => {
+    if (!contactId) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('contacts')
+        .delete()
+        .eq('id', contactId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Contact deleted successfully',
+      });
+
+      onOpenChange(false);
+      onRefresh?.();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+      setDeleteDialogOpen(false);
+    }
+  };
+
   if (!contact) {
     return null;
   }
@@ -174,13 +207,25 @@ export function ContactDetail({ contactId, open, onOpenChange, onRefresh }: Cont
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            {contact.first_name} {contact.last_name}
-          </SheetTitle>
-          <SheetDescription>
-            Contact details and relationships
-          </SheetDescription>
+          <div className="flex items-center justify-between">
+            <div>
+              <SheetTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                {contact.first_name} {contact.last_name}
+              </SheetTitle>
+              <SheetDescription>
+                Contact details and relationships
+              </SheetDescription>
+            </div>
+            <Button
+              variant="destructive"
+              size="icon"
+              onClick={() => setDeleteDialogOpen(true)}
+              disabled={loading}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
@@ -390,6 +435,23 @@ export function ContactDetail({ contactId, open, onOpenChange, onRefresh }: Cont
             </div>
           </DialogContent>
         </Dialog>
+
+        <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete Contact</AlertDialogTitle>
+              <AlertDialogDescription>
+                Are you sure you want to delete "{contact.first_name} {contact.last_name}"? This action cannot be undone.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+                Delete
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </SheetContent>
     </Sheet>
   );
