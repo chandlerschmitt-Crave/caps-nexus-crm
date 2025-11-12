@@ -1,13 +1,13 @@
 project_id = "jfvxfmvregbixuyoymey"
 
 [functions.enrich-parcel]
-verify_jwt = false
+verify_jwt = true
 
 [functions.search-land]
-verify_jwt = false
+verify_jwt = true
 
 [functions.parcel-workflow]
-verify_jwt = false
+verify_jwt = true
 
 [functions.nightly-enrichment]
 verify_jwt = false
