@@ -7,7 +7,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { Calendar, AlertCircle, Plus } from 'lucide-react';
+import { Calendar, AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { TaskForm } from '@/components/forms/TaskForm';
 
 interface Task {
@@ -44,6 +44,15 @@ export default function Tasks() {
     await supabase
       .from('tasks')
       .update({ status: newStatus })
+      .eq('id', taskId);
+
+    loadTasks();
+  };
+
+  const deleteTask = async (taskId: string) => {
+    await supabase
+      .from('tasks')
+      .delete()
       .eq('id', taskId);
 
     loadTasks();
@@ -99,11 +108,21 @@ export default function Tasks() {
                       >
                         {task.subject}
                       </h3>
-                      <Badge
-                        className={`text-xs ${getPriorityColor(task.priority)}`}
-                      >
-                        {task.priority}
-                      </Badge>
+                      <div className="flex items-center gap-2">
+                        <Badge
+                          className={`text-xs ${getPriorityColor(task.priority)}`}
+                        >
+                          {task.priority}
+                        </Badge>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteTask(task.id)}
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
 
                     {task.due_date && (
