@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { Briefcase, Building2, FolderKanban, Home, TrendingUp, DollarSign, Users, PieChart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { GuidePanel } from '@/components/dashboard/GuidePanel';
 
 interface InvestorDeal {
   id: string;
@@ -237,23 +238,7 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Quick Start</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <p className="text-sm text-muted-foreground">
-              Your CRM is set up and ready to use. Get started by:
-            </p>
-            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground ml-2">
-              <li>Adding accounts (organizations like TerraQore, Malibu Luxury Estates)</li>
-              <li>Creating projects (AI Data Center, Luxury Residential)</li>
-              <li>Tracking deals in the Pipeline view</li>
-              <li>Managing properties in Malibu and other markets</li>
-              <li>Recording activities and tasks for follow-ups</li>
-            </ul>
-          </CardContent>
-        </Card>
+        <GuidePanel />
       </div>
     </Layout>
   );
