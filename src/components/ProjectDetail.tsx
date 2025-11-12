@@ -268,9 +268,48 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
                   <CardTitle className="text-base">Project Information</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                  <div className="flex gap-2">
-                    <Badge variant="secondary">{project.project_type.replace('_', ' ')}</Badge>
-                    <Badge variant="outline">{project.stage}</Badge>
+                  <div className="space-y-2">
+                    <Label className="text-muted-foreground">Type & Stage</Label>
+                    <div className="flex gap-2 items-center">
+                      <Badge variant="secondary">{project.project_type.replace('_', ' ')}</Badge>
+                      <Select
+                        value={project.stage}
+                        onValueChange={async (value: string) => {
+                          const { error } = await supabase
+                            .from('projects')
+                            .update({ stage: value as any })
+                            .eq('id', projectId!);
+
+                          if (!error) {
+                            toast({
+                              title: 'Success',
+                              description: 'Project stage updated',
+                            });
+                            loadProjectDetails();
+                            onRefresh?.();
+                          } else {
+                            toast({
+                              title: 'Error',
+                              description: error.message,
+                              variant: 'destructive',
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Ideation">Ideation</SelectItem>
+                          <SelectItem value="Pre-Dev">Pre-Dev</SelectItem>
+                          <SelectItem value="Raising">Raising</SelectItem>
+                          <SelectItem value="Entitlements">Entitlements</SelectItem>
+                          <SelectItem value="Construction">Construction</SelectItem>
+                          <SelectItem value="Stabilization">Stabilization</SelectItem>
+                          <SelectItem value="Exit">Exit</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
 
                   {project.account && (
