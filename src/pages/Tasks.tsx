@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { format } from 'date-fns';
-import { Calendar, AlertCircle } from 'lucide-react';
+import { Calendar, AlertCircle, Plus } from 'lucide-react';
+import { TaskForm } from '@/components/forms/TaskForm';
 
 interface Task {
   id: string;
@@ -19,6 +21,7 @@ interface Task {
 
 export default function Tasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [showTaskForm, setShowTaskForm] = useState(false);
   const { user } = useAuth();
 
   useEffect(() => {
@@ -63,9 +66,15 @@ export default function Tasks() {
   return (
     <Layout>
       <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
-          <p className="text-muted-foreground">Your action items and to-dos</p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
+            <p className="text-muted-foreground">Your action items and to-dos</p>
+          </div>
+          <Button onClick={() => setShowTaskForm(true)}>
+            <Plus className="mr-2 h-4 w-4" />
+            Add Task
+          </Button>
         </div>
 
         <div className="space-y-3">
@@ -130,6 +139,12 @@ export default function Tasks() {
             </Card>
           )}
         </div>
+
+        <TaskForm 
+          open={showTaskForm}
+          onOpenChange={setShowTaskForm}
+          onSuccess={loadTasks}
+        />
       </div>
     </Layout>
   );
