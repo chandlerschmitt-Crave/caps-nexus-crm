@@ -103,6 +103,56 @@ async function geocodeAddress(supabase: any, parcel: any): Promise<GeocodeResult
   return null;
 }
 
+async function findNearbySubstations(lat: number, lon: number, radiusKm: number = 25): Promise<any[]> {
+  // OpenStreetMap Overpass API query for substations
+  const query = `
+    [out:json][timeout:25];
+    (
+      node["power"="substation"](around:${radiusKm * 1000},${lat},${lon});
+      way["power"="substation"](around:${radiusKm * 1000},${lat},${lon});
+    );
+    out body;
+  `;
+
+  try {
+    const response = await fetch('https://overpass-api.de/api/interpreter', {
+      method: 'POST',
+      body: query,
+      headers: { 'Content-Type': 'text/plain' }
+    });
+    
+    const data = await response.json();
+    
+    const substations = (data.elements || []).map((el: any) => {
+      const distance = haversineDistance(lat, lon, el.lat || el.center?.lat, el.lon || el.center?.lon);
+      return {
+        name: el.tags?.name || 'Unknown Substation',
+        voltage: el.tags?.voltage || null,
+        operator: el.tags?.operator || null,
+        distance_mi: distance,
+        lat: el.lat || el.center?.lat,
+        lon: el.lon || el.center?.lon
+      };
+    });
+
+    return substations.sort((a: any, b: any) => a.distance_mi - b.distance_mi);
+  } catch (error) {
+    console.error('OpenStreetMap query error:', error);
+    return [];
+  }
+}
+
+function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 3959; // Earth radius in miles
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon/2) * Math.sin(dLon/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
 async function enrichUtilitiesByRegion(supabase: any, parcel: any, existingUtilities: any): Promise<any> {
   // Never overwrite explicit listing data
   if (existingUtilities?.available_mw_source === 'listing') {
@@ -113,12 +163,6 @@ async function enrichUtilitiesByRegion(supabase: any, parcel: any, existingUtili
   const state = parcel.state;
   const county = parcel.county || '';
   
-  // Substation reference data for proximity heuristics
-  const substationData: Record<string, any> = {
-    'Dallas': { name: 'Oncor Lancaster Sub', distance_mi: 2.5, typical_mw: 50 },
-    'Collin': { name: 'Oncor McKinney Sub', distance_mi: 3.0, typical_mw: 40 },
-  };
-
   const rules: Record<string, any> = {
     TX: {
       default: {
@@ -153,18 +197,92 @@ async function enrichUtilitiesByRegion(supabase: any, parcel: any, existingUtili
   
   const enriched = { ...defaultRules, ...countyRules };
 
-  // Proximity-based MW inference
-  if (!existingUtilities?.available_mw_estimate && substationData[county]) {
-    const sub = substationData[county];
-    enriched.nearest_substation_name = sub.name;
-    enriched.nearest_substation_distance_mi = sub.distance_mi;
-    enriched.available_mw_estimate = sub.typical_mw;
-    enriched.available_mw_source = 'proximity';
-    enriched.available_mw_confidence = 'low';
-    enriched.available_mw_evidence = `Inferred from ${sub.name} proximity`;
+  // Use OpenStreetMap to find real substations if we have coordinates
+  if (parcel.latitude && parcel.longitude && !existingUtilities?.nearest_substation_name) {
+    console.log('Querying OpenStreetMap for nearby substations...');
+    const substations = await findNearbySubstations(parcel.latitude, parcel.longitude);
+    
+    if (substations.length > 0) {
+      const nearest = substations[0];
+      enriched.nearest_substation_name = nearest.name;
+      enriched.nearest_substation_distance_mi = Math.round(nearest.distance_mi * 10) / 10;
+      
+      // Estimate MW based on voltage
+      if (nearest.voltage) {
+        const voltage = parseInt(nearest.voltage.split(';')[0]);
+        let estimatedMW = 10;
+        if (voltage >= 500000) estimatedMW = 200;
+        else if (voltage >= 345000) estimatedMW = 150;
+        else if (voltage >= 230000) estimatedMW = 100;
+        else if (voltage >= 138000) estimatedMW = 50;
+        else if (voltage >= 69000) estimatedMW = 25;
+        
+        enriched.available_mw_estimate = estimatedMW;
+        enriched.available_mw_source = 'osm_voltage';
+        enriched.available_mw_confidence = 'medium';
+        enriched.available_mw_evidence = `Based on ${voltage}V substation within ${nearest.distance_mi.toFixed(1)}mi`;
+      }
+      
+      if (nearest.operator) {
+        enriched.grid_operator = nearest.operator;
+      }
+    }
   }
 
   return enriched;
+}
+
+async function enrichTopographyFromUSGS(lat: number, lon: number): Promise<any> {
+  try {
+    // USGS Elevation Point Query Service (free)
+    const elevationUrl = `https://epqs.nationalmap.gov/v1/json?x=${lon}&y=${lat}&units=Feet&output=json`;
+    const response = await fetch(elevationUrl);
+    const data = await response.json();
+    
+    if (data.value && data.value.length > 0) {
+      const elevation = data.value[0].value;
+      
+      // Query surrounding points to calculate slope
+      const points = [
+        { lat: lat + 0.001, lon },
+        { lat: lat - 0.001, lon },
+        { lat, lon: lon + 0.001 },
+        { lat, lon: lon - 0.001 }
+      ];
+      
+      const elevations = await Promise.all(
+        points.map(async (p) => {
+          try {
+            const res = await fetch(`https://epqs.nationalmap.gov/v1/json?x=${p.lon}&y=${p.lat}&units=Feet&output=json`);
+            const d = await res.json();
+            return d.value?.[0]?.value || elevation;
+          } catch {
+            return elevation;
+          }
+        })
+      );
+      
+      const maxDiff = Math.max(...elevations.map(e => Math.abs(e - elevation)));
+      const slope = (maxDiff / 364) * 100; // 364 feet ≈ distance for 0.001 degree
+      
+      // Estimate view quality based on elevation (higher = better views)
+      const viewScore = elevation > 1000 ? 8 : elevation > 500 ? 6 : 4;
+      
+      // Road access heuristic (flatter = better access)
+      const roadScore = slope < 5 ? 9 : slope < 10 ? 7 : slope < 15 ? 5 : 3;
+      
+      return {
+        elevation_ft: Math.round(elevation),
+        slope_pct: Math.round(slope * 10) / 10,
+        view_quality_score: viewScore,
+        road_access_score: roadScore
+      };
+    }
+  } catch (error) {
+    console.error('USGS elevation query error:', error);
+  }
+  
+  return null;
 }
 
 async function enrichZoningRights(supabase: any, parcel_id: string, parcel: any): Promise<void> {
@@ -332,17 +450,28 @@ Deno.serve(async (req) => {
     // 3. Enrich zoning & rights (with smart mineral rights detection)
     await enrichZoningRights(supabase, parcel_id, parcel);
 
-    // 5. Create basic topography record if missing
-    const { error: topoError } = await supabase
-      .from('parcel_topography')
-      .upsert({ 
-        parcel_id,
-        road_access_score: 5,
-        view_quality_score: 5,
-        notes: 'Preliminary estimates'
-      }, { onConflict: 'parcel_id' });
-    
-    if (topoError) console.error('Topo upsert error:', topoError);
+    // 5. Enrich topography with USGS Elevation API
+    if (parcel.latitude && parcel.longitude) {
+      const topoData = await enrichTopographyFromUSGS(parcel.latitude, parcel.longitude);
+      
+      if (topoData) {
+        await supabase
+          .from('parcel_topography')
+          .upsert({ 
+            parcel_id,
+            ...topoData
+          }, { onConflict: 'parcel_id' });
+      }
+    } else {
+      // Create basic record if no coordinates
+      await supabase
+        .from('parcel_topography')
+        .upsert({ 
+          parcel_id,
+          road_access_score: 5,
+          view_quality_score: 5,
+        }, { onConflict: 'parcel_id' });
+    }
 
     // 6. Fetch all enrichment data
     const { data: utilities } = await supabase
