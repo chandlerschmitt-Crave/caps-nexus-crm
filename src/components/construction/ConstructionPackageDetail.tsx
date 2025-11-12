@@ -14,6 +14,7 @@ import { Badge } from '@/components/ui/badge';
 import { HardHat, DollarSign, TrendingUp, AlertTriangle } from 'lucide-react';
 import { BudgetTab } from './tabs/BudgetTab';
 import { DrawsTab } from './tabs/DrawsTab';
+import { InvoicesTab } from './tabs/InvoicesTab';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ConstructionPackageDetailProps {
@@ -218,11 +219,7 @@ export function ConstructionPackageDetail({
             </TabsContent>
             
             <TabsContent value="invoices" className="mt-4">
-              <Card>
-                <CardContent className="py-8">
-                  <p className="text-center text-muted-foreground">Invoices coming soon</p>
-                </CardContent>
-              </Card>
+              <InvoicesTab packageId={packageId} onUpdate={loadPackageDetails} />
             </TabsContent>
             
             <TabsContent value="draws" className="mt-4">
