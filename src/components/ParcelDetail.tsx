@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Zap, FileText, Mountain, Image, Rocket, CheckCircle, XCircle } from 'lucide-react';
+import { MapPin, Zap, FileText, Mountain, Image, Rocket, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
@@ -243,11 +243,38 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
               </TabsList>
 
               <TabsContent value="summary" className="space-y-4">
+                {parcel.listing_url && (
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => window.open(parcel.listing_url, '_blank')}
+                  >
+                    <ExternalLink className="mr-2 h-4 w-4" />
+                    View Original Listing
+                  </Button>
+                )}
+                
                 <Card>
                   <CardHeader>
                     <CardTitle>Overview</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
+                    {parcel.listing_url && (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Source:</span>
+                        <Button
+                          variant="link"
+                          size="sm"
+                          className="h-auto p-0 text-primary"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            window.open(parcel.listing_url, '_blank');
+                          }}
+                        >
+                          View Listing <ExternalLink className="ml-1 h-3 w-3" />
+                        </Button>
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Status:</span>
                       <Badge>{parcel.status}</Badge>

@@ -24,6 +24,7 @@ interface Parcel {
   score_data_center: number | null;
   score_luxury: number | null;
   asking_price: number | null;
+  listing_url: string | null;
   parcel_utilities?: Array<{ available_mw_estimate: number | null }>;
 }
 
