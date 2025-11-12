@@ -100,7 +100,7 @@ export function ContactForm({ contactId, onSuccess, onCancel }: ContactFormProps
       } else {
         const { data: newAccount, error: accountError } = await supabase
           .from('accounts')
-          .insert([{ name: values.account_name, type: 'Investor' }])
+          .insert([{ name: values.account_name, type_of_account: 'Investor' }])
           .select('id')
           .single();
         
