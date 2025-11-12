@@ -206,11 +206,23 @@ export default function LandIntelligence() {
                   <div className="flex items-start justify-between">
                     <div className="flex items-start gap-2 flex-1">
                       <MapPin className="h-4 w-4 text-primary mt-1" />
-                      <div>
-                        <h3 className="font-semibold">{parcel.name || parcel.address}</h3>
+                      <div className="flex-1">
+                        <h3 className="font-semibold">{parcel.name || 'Unnamed Parcel'}</h3>
                         <p className="text-sm text-muted-foreground">
+                          {parcel.address && `${parcel.address}, `}
                           {parcel.city}, {parcel.state} {parcel.county ? `• ${parcel.county}` : ''}
                         </p>
+                        {parcel.listing_url && (
+                          <a 
+                            href={parcel.listing_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline"
+                            onClick={(e) => e.stopPropagation()}
+                          >
+                            View Listing →
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>

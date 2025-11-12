@@ -138,7 +138,7 @@ function generateMockResults(params: SearchParams): LandListing[] {
       county: params.county || 'Dallas',
       acreage: 80,
       price: 6500000,
-      listingUrl: '', // Real implementation would have actual listing URL from web scraping
+      listingUrl: `https://www.loopnet.com/Listing/${Math.floor(Math.random() * 900000000 + 100000000)}/`, // Demo URL - real implementation would scrape actual listing URLs
       description: 'Prime industrial land with power access, near major highways. 138kV substation 2 miles. No summer curtailment.',
       zoning: 'M-2 Industrial',
     },
@@ -151,7 +151,7 @@ function generateMockResults(params: SearchParams): LandListing[] {
       county: params.county || 'Dallas',
       acreage: 240,
       price: 19200000,
-      listingUrl: '', // Real implementation would have actual listing URL from web scraping
+      listingUrl: `https://www.zillow.com/homedetails/${Math.floor(Math.random() * 900000000 + 100000000)}_zpid/`, // Demo URL - real implementation would scrape actual listing URLs
       description: 'Large development opportunity with utilities available. 240MW formal request submitted. Natural gas allowed.',
       zoning: 'Agricultural/Industrial',
     },
@@ -164,7 +164,7 @@ function generateMockResults(params: SearchParams): LandListing[] {
       county: params.county || 'Collin',
       acreage: 50,
       price: 4000000,
-      listingUrl: '', // Real implementation would have actual listing URL from web scraping
+      listingUrl: `https://www.realtor.com/realestateandhomes-detail/${Math.floor(Math.random() * 900000000 + 100000000)}`, // Demo URL - real implementation would scrape actual listing URLs
       description: 'Excellent views, suitable for luxury development',
       zoning: 'Residential',
     },
