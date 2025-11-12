@@ -212,7 +212,7 @@ export default function LandIntelligence() {
                           {parcel.address && `${parcel.address}, `}
                           {parcel.city}, {parcel.state} {parcel.county ? `• ${parcel.county}` : ''}
                         </p>
-                        {parcel.listing_url && (
+                        {parcel.listing_url ? (
                           <a 
                             href={parcel.listing_url} 
                             target="_blank" 
@@ -222,7 +222,10 @@ export default function LandIntelligence() {
                           >
                             View Listing →
                           </a>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">Source link unavailable (demo)</span>
                         )}
+
                       </div>
                     </div>
                   </div>

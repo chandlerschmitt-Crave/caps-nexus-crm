@@ -296,7 +296,7 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
               </TabsList>
 
               <TabsContent value="summary" className="space-y-4">
-                {parcel.listing_url && (
+                {parcel.listing_url ? (
                   <Button
                     variant="outline"
                     className="w-full"
@@ -305,14 +305,19 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
                     <ExternalLink className="mr-2 h-4 w-4" />
                     View Original Listing
                   </Button>
+                ) : (
+                  <div className="w-full text-center text-xs text-muted-foreground border rounded-md py-2">
+                    Source link unavailable (demo)
+                  </div>
                 )}
+
                 
                 <Card>
                   <CardHeader>
                     <CardTitle>Overview</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-2">
-                    {parcel.listing_url && (
+                    {parcel.listing_url ? (
                       <div className="flex justify-between items-center">
                         <span className="text-muted-foreground">Source:</span>
                         <Button
@@ -327,7 +332,13 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
                           View Listing <ExternalLink className="ml-1 h-3 w-3" />
                         </Button>
                       </div>
+                    ) : (
+                      <div className="flex justify-between items-center">
+                        <span className="text-muted-foreground">Source:</span>
+                        <span className="text-xs text-muted-foreground">Link unavailable (demo)</span>
+                      </div>
                     )}
+
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">Status:</span>
                       <Badge>{parcel.status}</Badge>
