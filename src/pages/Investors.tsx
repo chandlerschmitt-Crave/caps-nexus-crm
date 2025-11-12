@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { AccountForm } from '@/components/forms/AccountForm';
+import { AccountDetail } from '@/components/AccountDetail';
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, MapPin, Phone, Globe, Plus, Users } from 'lucide-react';
 
@@ -23,6 +24,8 @@ interface Investor {
 export default function Investors() {
   const [investors, setInvestors] = useState<Investor[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
     loadInvestors();
@@ -54,6 +57,11 @@ export default function Investors() {
     }
   };
 
+  const handleInvestorClick = (investorId: string) => {
+    setSelectedInvestorId(investorId);
+    setDetailOpen(true);
+  };
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -74,6 +82,13 @@ export default function Investors() {
           onSuccess={loadInvestors}
         />
 
+        <AccountDetail
+          accountId={selectedInvestorId}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          onRefresh={loadInvestors}
+        />
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {investors.length === 0 ? (
             <Card className="col-span-full">
@@ -91,7 +106,11 @@ export default function Investors() {
             </Card>
           ) : (
             investors.map((investor) => (
-              <Card key={investor.id} className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card 
+                key={investor.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => handleInvestorClick(investor.id)}
+              >
                 <CardHeader>
                   <div className="flex items-start gap-3">
                     <Building2 className="h-5 w-5 text-primary mt-1" />

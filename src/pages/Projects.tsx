@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
 import { FolderKanban, MapPin, DollarSign, Plus } from 'lucide-react';
 import { ProjectForm } from '@/components/forms/ProjectForm';
+import { ProjectDetail } from '@/components/ProjectDetail';
 
 interface Project {
   id: string;
@@ -20,6 +21,8 @@ interface Project {
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [formOpen, setFormOpen] = useState(false);
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
     loadProjects();
@@ -69,9 +72,23 @@ export default function Projects() {
           onSuccess={loadProjects}
         />
 
+        <ProjectDetail
+          projectId={selectedProjectId}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          onRefresh={loadProjects}
+        />
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {projects.map((project) => (
-            <Card key={project.id} className="hover:shadow-md transition-shadow cursor-pointer">
+            <Card 
+              key={project.id} 
+              className="hover:shadow-md transition-shadow cursor-pointer"
+              onClick={() => {
+                setSelectedProjectId(project.id);
+                setDetailOpen(true);
+              }}
+            >
               <CardHeader>
                 <div className="flex items-start gap-3">
                   <FolderKanban className="h-5 w-5 text-primary mt-1" />

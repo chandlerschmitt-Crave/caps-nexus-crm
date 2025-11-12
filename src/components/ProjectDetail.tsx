@@ -1,0 +1,423 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { FolderKanban, Building2, Home, CheckSquare, DollarSign, Link as LinkIcon } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+
+interface ProjectDetailProps {
+  projectId: string | null;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onRefresh?: () => void;
+}
+
+interface Project {
+  id: string;
+  name: string;
+  project_type: string;
+  stage: string;
+  market: string | null;
+  description: string | null;
+  est_total_cost: number | null;
+  account: { name: string; type_of_account: string | null } | null;
+}
+
+interface Property {
+  id: string;
+  address: string;
+  city: string;
+  state: string;
+  status: string;
+}
+
+interface Task {
+  id: string;
+  subject: string;
+  due_date: string | null;
+  priority: string;
+  status: string;
+}
+
+interface Deal {
+  id: string;
+  name: string;
+  amount_target: number | null;
+  stage: string;
+  instrument: string;
+}
+
+export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: ProjectDetailProps) {
+  const [project, setProject] = useState<Project | null>(null);
+  const [properties, setProperties] = useState<Property[]>([]);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [deals, setDeals] = useState<Deal[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+  const [linkType, setLinkType] = useState<'task' | null>(null);
+  const [taskForm, setTaskForm] = useState<{ subject: string; due_date: string; priority: 'Low' | 'Med' | 'High' }>({ 
+    subject: '', 
+    due_date: '', 
+    priority: 'Med' 
+  });
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (projectId && open) {
+      loadProjectDetails();
+    }
+  }, [projectId, open]);
+
+  const loadProjectDetails = async () => {
+    if (!projectId) return;
+
+    setLoading(true);
+    try {
+      const { data: projectData } = await supabase
+        .from('projects')
+        .select('*, account:accounts(name, type_of_account)')
+        .eq('id', projectId)
+        .maybeSingle();
+
+      setProject(projectData);
+
+      const { data: propertiesData } = await supabase
+        .from('properties')
+        .select('id, address, city, state, status')
+        .eq('project_id', projectId);
+
+      setProperties(propertiesData || []);
+
+      const { data: tasksData } = await supabase
+        .from('tasks')
+        .select('id, subject, due_date, priority, status')
+        .eq('related_type', 'Project')
+        .eq('related_id', projectId)
+        .order('due_date');
+
+      setTasks(tasksData || []);
+
+      const { data: dealsData } = await supabase
+        .from('deals')
+        .select('id, name, amount_target, stage, instrument')
+        .eq('project_id', projectId);
+
+      setDeals(dealsData || []);
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateTask = async () => {
+    if (!projectId || !taskForm.subject) return;
+
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      const { error } = await supabase
+        .from('tasks')
+        .insert([{
+          subject: taskForm.subject,
+          due_date: taskForm.due_date || null,
+          priority: taskForm.priority,
+          status: 'Not_Started',
+          related_type: 'Project',
+          related_id: projectId,
+          owner_user_id: user?.id
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Success',
+        description: 'Task created successfully',
+      });
+
+      setTaskForm({ subject: '', due_date: '', priority: 'Med' });
+      setLinkDialogOpen(false);
+      loadProjectDetails();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggleTask = async (taskId: string, currentStatus: string) => {
+    const newStatus = currentStatus === 'Done' ? 'Not_Started' : 'Done';
+    
+    const { error } = await supabase
+      .from('tasks')
+      .update({ status: newStatus })
+      .eq('id', taskId);
+
+    if (!error) {
+      loadProjectDetails();
+    }
+  };
+
+  const openLinkDialog = (type: 'task') => {
+    setLinkType(type);
+    setTaskForm({ subject: '', due_date: '', priority: 'Med' });
+    setLinkDialogOpen(true);
+  };
+
+  if (!project) {
+    return null;
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full sm:max-w-2xl overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle className="flex items-center gap-2">
+            <FolderKanban className="h-5 w-5" />
+            {project.name}
+          </SheetTitle>
+          <SheetDescription>
+            Project details and relationships
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="mt-6 space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Project Information</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex gap-2">
+                <Badge variant="secondary">{project.project_type.replace('_', ' ')}</Badge>
+                <Badge variant="outline">{project.stage}</Badge>
+              </div>
+
+              {project.account && (
+                <div className="flex items-center gap-2">
+                  <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <p className="text-sm font-medium">{project.account.name}</p>
+                    {project.account.type_of_account && (
+                      <p className="text-xs text-muted-foreground">{project.account.type_of_account}</p>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {project.market && (
+                <div>
+                  <Label className="text-muted-foreground">Market</Label>
+                  <p className="text-sm mt-1">{project.market}</p>
+                </div>
+              )}
+
+              {project.est_total_cost && (
+                <div className="flex items-center gap-2">
+                  <DollarSign className="h-4 w-4 text-muted-foreground" />
+                  <div>
+                    <Label className="text-muted-foreground">Est. Total Cost</Label>
+                    <p className="text-sm font-medium">
+                      ${(Number(project.est_total_cost) / 1000000).toFixed(1)}M
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {project.description && (
+                <div>
+                  <Label className="text-muted-foreground">Description</Label>
+                  <p className="text-sm mt-1">{project.description}</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Home className="h-4 w-4" />
+                Properties ({properties.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {properties.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No properties linked to this project
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {properties.map((property) => (
+                    <div key={property.id} className="p-3 rounded-md border">
+                      <p className="text-sm font-medium">{property.address}</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className="text-xs text-muted-foreground">
+                          {property.city}, {property.state}
+                        </p>
+                        <Badge variant="outline" className="text-xs">
+                          {property.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <DollarSign className="h-4 w-4" />
+                Deals ({deals.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {deals.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No deals linked to this project
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {deals.map((deal) => (
+                    <div key={deal.id} className="p-3 rounded-md border">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium">{deal.name}</p>
+                        {deal.amount_target && (
+                          <p className="text-sm font-bold">
+                            ${(Number(deal.amount_target) / 1000000).toFixed(2)}M
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">{deal.instrument}</Badge>
+                        <Badge variant="secondary" className="text-xs">{deal.stage}</Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <CardTitle className="text-base flex items-center gap-2">
+                <CheckSquare className="h-4 w-4" />
+                Tasks ({tasks.length})
+              </CardTitle>
+              <Button size="sm" variant="outline" onClick={() => openLinkDialog('task')}>
+                <LinkIcon className="h-3 w-3 mr-1" />
+                Create Task
+              </Button>
+            </CardHeader>
+            <CardContent>
+              {tasks.length === 0 ? (
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No tasks linked to this project
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {tasks.map((task) => (
+                    <div key={task.id} className="flex items-center gap-3 p-2 rounded-md border">
+                      <Checkbox
+                        checked={task.status === 'Done'}
+                        onCheckedChange={() => handleToggleTask(task.id, task.status)}
+                      />
+                      <div className="flex-1">
+                        <p className="text-sm font-medium">{task.subject}</p>
+                        <div className="flex gap-2 mt-1">
+                          <Badge variant="outline" className="text-xs">{task.priority}</Badge>
+                          {task.due_date && (
+                            <span className="text-xs text-muted-foreground">
+                              Due: {new Date(task.due_date).toLocaleDateString()}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        <Dialog open={linkDialogOpen} onOpenChange={setLinkDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create Task</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label>Task Subject *</Label>
+                <Input
+                  value={taskForm.subject}
+                  onChange={(e) => setTaskForm({ ...taskForm, subject: e.target.value })}
+                  placeholder="e.g., Review project timeline"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Due Date</Label>
+                <Input
+                  type="date"
+                  value={taskForm.due_date}
+                  onChange={(e) => setTaskForm({ ...taskForm, due_date: e.target.value })}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Priority</Label>
+                <Select value={taskForm.priority} onValueChange={(value) => setTaskForm({ ...taskForm, priority: value as 'Low' | 'Med' | 'High' })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Med">Med</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => setLinkDialogOpen(false)}
+                  disabled={loading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCreateTask}
+                  disabled={!taskForm.subject || loading}
+                >
+                  {loading ? 'Creating...' : 'Create'}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      </SheetContent>
+    </Sheet>
+  );
+}

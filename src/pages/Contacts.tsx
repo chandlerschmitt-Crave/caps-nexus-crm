@@ -14,6 +14,7 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
+import { ContactDetail } from '@/components/ContactDetail';
 
 interface Contact {
   id: string;
@@ -32,6 +33,8 @@ export default function Contacts() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedContactId, setSelectedContactId] = useState<string | undefined>();
+  const [detailOpen, setDetailOpen] = useState(false);
+  const [detailContactId, setDetailContactId] = useState<string | null>(null);
 
   useEffect(() => {
     loadContacts();
@@ -54,6 +57,11 @@ export default function Contacts() {
   const handleCloseDialog = () => {
     setDialogOpen(false);
     setSelectedContactId(undefined);
+  };
+
+  const handleContactClick = (contactId: string) => {
+    setDetailContactId(contactId);
+    setDetailOpen(true);
   };
 
   return (
@@ -89,6 +97,13 @@ export default function Contacts() {
           </Dialog>
         </div>
 
+        <ContactDetail
+          contactId={detailContactId}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          onRefresh={loadContacts}
+        />
+
         <div className="rounded-md border">
           <Table>
             <TableHeader>
@@ -110,7 +125,11 @@ export default function Contacts() {
                 </TableRow>
               ) : (
                 contacts.map((contact) => (
-                  <TableRow key={contact.id}>
+                  <TableRow 
+                    key={contact.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleContactClick(contact.id)}
+                  >
                     <TableCell>
                       <div>
                         <div className="font-medium">
@@ -191,7 +210,10 @@ export default function Contacts() {
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEdit(contact.id)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleEdit(contact.id);
+                        }}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>

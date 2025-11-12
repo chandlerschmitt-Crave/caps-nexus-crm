@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { PropertyForm } from '@/components/forms/PropertyForm';
+import { PropertyDetail } from '@/components/PropertyDetail';
 import { Notes } from '@/components/Notes';
 import { supabase } from '@/integrations/supabase/client';
 import { Home, MapPin, TrendingUp, Plus } from 'lucide-react';
@@ -25,6 +26,7 @@ export default function Properties() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(null);
   const [notesDialogOpen, setNotesDialogOpen] = useState(false);
+  const [detailOpen, setDetailOpen] = useState(false);
 
   useEffect(() => {
     loadProperties();
@@ -74,11 +76,25 @@ export default function Properties() {
           </Dialog>
         </div>
 
+        <PropertyDetail
+          propertyId={selectedProperty?.id || null}
+          open={detailOpen}
+          onOpenChange={setDetailOpen}
+          onRefresh={loadProperties}
+        />
+
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {properties.map((property) => {
             const spread = calculateSpread(property);
             return (
-              <Card key={property.id} className="hover:shadow-md transition-shadow">
+              <Card 
+                key={property.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  setSelectedProperty(property);
+                  setDetailOpen(true);
+                }}
+              >
                 <CardHeader>
                   <div className="flex items-start gap-3">
                     <Home className="h-5 w-5 text-primary mt-1" />
@@ -143,7 +159,8 @@ export default function Properties() {
                       variant="outline"
                       size="sm"
                       className="w-full"
-                      onClick={() => {
+                      onClick={(e) => {
+                        e.stopPropagation();
                         setSelectedProperty(property);
                         setNotesDialogOpen(true);
                       }}
