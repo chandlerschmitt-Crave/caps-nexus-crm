@@ -347,6 +347,325 @@ export type Database = {
         }
         Relationships: []
       }
+      parcel_images: {
+        Row: {
+          created_at: string | null
+          id: string
+          kind: string | null
+          parcel_id: string | null
+          url: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          kind?: string | null
+          parcel_id?: string | null
+          url?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          kind?: string | null
+          parcel_id?: string | null
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcel_images_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parcel_rights: {
+        Row: {
+          easements: string | null
+          id: string
+          mineral_rights_owner: string | null
+          notes: string | null
+          parcel_id: string | null
+          restrictions: string | null
+        }
+        Insert: {
+          easements?: string | null
+          id?: string
+          mineral_rights_owner?: string | null
+          notes?: string | null
+          parcel_id?: string | null
+          restrictions?: string | null
+        }
+        Update: {
+          easements?: string | null
+          id?: string
+          mineral_rights_owner?: string | null
+          notes?: string | null
+          parcel_id?: string | null
+          restrictions?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcel_rights_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parcel_topography: {
+        Row: {
+          elevation_ft: number | null
+          id: string
+          parcel_id: string | null
+          road_access_score: number | null
+          slope_pct: number | null
+          view_quality_score: number | null
+        }
+        Insert: {
+          elevation_ft?: number | null
+          id?: string
+          parcel_id?: string | null
+          road_access_score?: number | null
+          slope_pct?: number | null
+          view_quality_score?: number | null
+        }
+        Update: {
+          elevation_ft?: number | null
+          id?: string
+          parcel_id?: string | null
+          road_access_score?: number | null
+          slope_pct?: number | null
+          view_quality_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcel_topography_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parcel_utilities: {
+        Row: {
+          available_mw_estimate: number | null
+          fiber_provider: string | null
+          gas_provider: string | null
+          grid_operator: string | null
+          id: string
+          nearest_substation_distance_mi: number | null
+          nearest_substation_name: string | null
+          notes: string | null
+          parcel_id: string | null
+          peak_season_constraints: string | null
+          water_provider: string | null
+        }
+        Insert: {
+          available_mw_estimate?: number | null
+          fiber_provider?: string | null
+          gas_provider?: string | null
+          grid_operator?: string | null
+          id?: string
+          nearest_substation_distance_mi?: number | null
+          nearest_substation_name?: string | null
+          notes?: string | null
+          parcel_id?: string | null
+          peak_season_constraints?: string | null
+          water_provider?: string | null
+        }
+        Update: {
+          available_mw_estimate?: number | null
+          fiber_provider?: string | null
+          gas_provider?: string | null
+          grid_operator?: string | null
+          id?: string
+          nearest_substation_distance_mi?: number | null
+          nearest_substation_name?: string | null
+          notes?: string | null
+          parcel_id?: string | null
+          peak_season_constraints?: string | null
+          water_provider?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcel_utilities_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parcel_zoning: {
+        Row: {
+          commercial_allowed: boolean | null
+          data_center_allowed: boolean | null
+          entitlement_speed: string | null
+          id: string
+          lot_coverage_pct: number | null
+          max_height_ft: number | null
+          overlay_coastal: boolean | null
+          overlay_fire: boolean | null
+          overlay_flood: boolean | null
+          parcel_id: string | null
+          references_url: string | null
+          residential_allowed: boolean | null
+          zoning_type: string | null
+        }
+        Insert: {
+          commercial_allowed?: boolean | null
+          data_center_allowed?: boolean | null
+          entitlement_speed?: string | null
+          id?: string
+          lot_coverage_pct?: number | null
+          max_height_ft?: number | null
+          overlay_coastal?: boolean | null
+          overlay_fire?: boolean | null
+          overlay_flood?: boolean | null
+          parcel_id?: string | null
+          references_url?: string | null
+          residential_allowed?: boolean | null
+          zoning_type?: string | null
+        }
+        Update: {
+          commercial_allowed?: boolean | null
+          data_center_allowed?: boolean | null
+          entitlement_speed?: string | null
+          id?: string
+          lot_coverage_pct?: number | null
+          max_height_ft?: number | null
+          overlay_coastal?: boolean | null
+          overlay_fire?: boolean | null
+          overlay_flood?: boolean | null
+          parcel_id?: string | null
+          references_url?: string | null
+          residential_allowed?: boolean | null
+          zoning_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcel_zoning_parcel_id_fkey"
+            columns: ["parcel_id"]
+            isOneToOne: false
+            referencedRelation: "parcels"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parcels: {
+        Row: {
+          acreage: number | null
+          address: string | null
+          apn: string | null
+          asking_price: number | null
+          best_use: string | null
+          city: string | null
+          county: string | null
+          created_at: string | null
+          created_by: string | null
+          deal_id: string | null
+          entitlement_notes: string | null
+          id: string
+          latitude: number | null
+          listing_url: string | null
+          longitude: number | null
+          name: string | null
+          price_per_acre: number | null
+          project_id: string | null
+          prospect_confidence_pct: number | null
+          prospect_notes: string | null
+          prospect_owner: string | null
+          score_data_center: number | null
+          score_luxury: number | null
+          score_updated_at: string | null
+          state: string | null
+          status: string | null
+          zip: string | null
+          zoning_code: string | null
+          zoning_desc: string | null
+        }
+        Insert: {
+          acreage?: number | null
+          address?: string | null
+          apn?: string | null
+          asking_price?: number | null
+          best_use?: string | null
+          city?: string | null
+          county?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deal_id?: string | null
+          entitlement_notes?: string | null
+          id?: string
+          latitude?: number | null
+          listing_url?: string | null
+          longitude?: number | null
+          name?: string | null
+          price_per_acre?: number | null
+          project_id?: string | null
+          prospect_confidence_pct?: number | null
+          prospect_notes?: string | null
+          prospect_owner?: string | null
+          score_data_center?: number | null
+          score_luxury?: number | null
+          score_updated_at?: string | null
+          state?: string | null
+          status?: string | null
+          zip?: string | null
+          zoning_code?: string | null
+          zoning_desc?: string | null
+        }
+        Update: {
+          acreage?: number | null
+          address?: string | null
+          apn?: string | null
+          asking_price?: number | null
+          best_use?: string | null
+          city?: string | null
+          county?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          deal_id?: string | null
+          entitlement_notes?: string | null
+          id?: string
+          latitude?: number | null
+          listing_url?: string | null
+          longitude?: number | null
+          name?: string | null
+          price_per_acre?: number | null
+          project_id?: string | null
+          prospect_confidence_pct?: number | null
+          prospect_notes?: string | null
+          prospect_owner?: string | null
+          score_data_center?: number | null
+          score_luxury?: number | null
+          score_updated_at?: string | null
+          state?: string | null
+          status?: string | null
+          zip?: string | null
+          zoning_code?: string | null
+          zoning_desc?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parcels_deal_id_fkey"
+            columns: ["deal_id"]
+            isOneToOne: false
+            referencedRelation: "deals"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "parcels_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       picklists: {
         Row: {
           id: string
@@ -597,6 +916,7 @@ export type Database = {
         | "Docs"
         | "Closed_Won"
         | "Closed_Lost"
+        | "Prospecting"
       doc_type: "Deck" | "Model" | "Proforma" | "PPM" | "LOI" | "Contract"
       project_stage:
         | "Ideation"
@@ -783,6 +1103,7 @@ export const Constants = {
         "Docs",
         "Closed_Won",
         "Closed_Lost",
+        "Prospecting",
       ],
       doc_type: ["Deck", "Model", "Proforma", "PPM", "LOI", "Contract"],
       project_stage: [
