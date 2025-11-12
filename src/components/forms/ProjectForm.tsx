@@ -63,7 +63,7 @@ export function ProjectForm({ open, onOpenChange, onSuccess }: ProjectFormProps)
       } else {
         const { data: newAccount, error: accountError } = await supabase
           .from('accounts')
-          .insert([{ name: data.account_name, type: 'DevCo' }])
+          .insert([{ name: data.account_name, type_of_account: 'DevCo' }])
           .select('id')
           .single();
         
