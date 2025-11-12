@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Notes } from '@/components/Notes';
 
 interface ParcelDetailProps {
   parcelId: string | null;
@@ -234,12 +235,13 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
             </div>
 
             <Tabs defaultValue="summary">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="summary">Summary</TabsTrigger>
                 <TabsTrigger value="utilities">Utilities</TabsTrigger>
                 <TabsTrigger value="zoning">Zoning</TabsTrigger>
                 <TabsTrigger value="rights">Rights</TabsTrigger>
                 <TabsTrigger value="topo">Topo</TabsTrigger>
+                <TabsTrigger value="notes">Notes</TabsTrigger>
               </TabsList>
 
               <TabsContent value="summary" className="space-y-4">
@@ -624,6 +626,14 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
                 ) : (
                   <p className="text-muted-foreground">No topography data available</p>
                 )}
+              </TabsContent>
+
+              <TabsContent value="notes">
+                <Notes 
+                  relatedType="Parcel" 
+                  relatedId={parcelId!} 
+                  title="Team Notes"
+                />
               </TabsContent>
             </Tabs>
           </div>
