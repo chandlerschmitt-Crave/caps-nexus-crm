@@ -5,12 +5,22 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { supabase } from '@/integrations/supabase/client';
-import { MapPin, Zap, FileText, Mountain, Image, Rocket, CheckCircle, XCircle, ExternalLink } from 'lucide-react';
+import { MapPin, Zap, FileText, Mountain, Image, Rocket, CheckCircle, XCircle, ExternalLink, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Notes } from '@/components/Notes';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface ParcelDetailProps {
   parcelId: string | null;
@@ -30,6 +40,7 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
   const [disqualifyOpen, setDisqualifyOpen] = useState(false);
   const [disqualifyReason, setDisqualifyReason] = useState('');
   const [qualifyConfirmOpen, setQualifyConfirmOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -191,6 +202,35 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
     }
   };
 
+  const handleDelete = async () => {
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('parcels')
+        .delete()
+        .eq('id', parcelId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Parcel Deleted',
+        description: 'The parcel has been permanently removed',
+      });
+
+      setDeleteConfirmOpen(false);
+      onOpenChange(false);
+      onRefresh();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (!parcel) return null;
 
   const getScoreColor = (score: number | null) => {
@@ -213,25 +253,36 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
 
           <div className="space-y-6 mt-6">
             {/* Actions */}
-            <div className="flex flex-wrap gap-2">
-              {!parcel.project_id && (
-                <Button onClick={handleCreateProject} disabled={loading}>
-                  <Rocket className="mr-2 h-4 w-4" />
-                  Create Project Draft
-                </Button>
-              )}
-              {parcel.status === 'Prospecting' && (
-                <>
-                  <Button onClick={checkQualifyRequirements} disabled={loading} variant="outline">
-                    <CheckCircle className="mr-2 h-4 w-4" />
-                    Qualify
+            <div className="flex flex-wrap gap-2 justify-between">
+              <div className="flex flex-wrap gap-2">
+                {!parcel.project_id && (
+                  <Button onClick={handleCreateProject} disabled={loading}>
+                    <Rocket className="mr-2 h-4 w-4" />
+                    Create Project Draft
                   </Button>
-                  <Button onClick={() => setDisqualifyOpen(true)} disabled={loading} variant="destructive">
-                    <XCircle className="mr-2 h-4 w-4" />
-                    Disqualify
-                  </Button>
-                </>
-              )}
+                )}
+                {parcel.status === 'Prospecting' && (
+                  <>
+                    <Button onClick={checkQualifyRequirements} disabled={loading} variant="outline">
+                      <CheckCircle className="mr-2 h-4 w-4" />
+                      Qualify
+                    </Button>
+                    <Button onClick={() => setDisqualifyOpen(true)} disabled={loading} variant="destructive">
+                      <XCircle className="mr-2 h-4 w-4" />
+                      Disqualify
+                    </Button>
+                  </>
+                )}
+              </div>
+              <Button 
+                onClick={() => setDeleteConfirmOpen(true)} 
+                disabled={loading} 
+                variant="ghost"
+                size="icon"
+                className="text-destructive hover:text-destructive hover:bg-destructive/10"
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
             </div>
 
             <Tabs defaultValue="summary">
@@ -690,6 +741,28 @@ export function ParcelDetail({ parcelId, open, onOpenChange, onRefresh }: Parcel
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={deleteConfirmOpen} onOpenChange={setDeleteConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete this parcel and all related data (utilities, zoning, rights, topography, images, and notes). This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={loading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              disabled={loading}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete Parcel
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

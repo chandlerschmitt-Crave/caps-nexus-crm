@@ -125,6 +125,8 @@ async function searchRealtorCom(params: SearchParams): Promise<LandListing[]> {
 }
 
 // Mock results for demonstration since web scraping requires proper HTML parsing libraries
+// NOTE: This function generates DEMO DATA ONLY. Real implementation requires web scraping.
+// The listing URLs below are NOT real and will not work - they're placeholders.
 function generateMockResults(params: SearchParams): LandListing[] {
   const baseResults: LandListing[] = [
     {
@@ -136,8 +138,8 @@ function generateMockResults(params: SearchParams): LandListing[] {
       county: params.county || 'Dallas',
       acreage: 80,
       price: 6500000,
-      listingUrl: 'https://www.loopnet.com/example-1',
-      description: 'Prime industrial land with power access, near major highways',
+      listingUrl: '', // Real implementation would have actual listing URL from web scraping
+      description: 'Prime industrial land with power access, near major highways. 138kV substation 2 miles. No summer curtailment.',
       zoning: 'M-2 Industrial',
     },
     {
@@ -149,8 +151,8 @@ function generateMockResults(params: SearchParams): LandListing[] {
       county: params.county || 'Dallas',
       acreage: 240,
       price: 19200000,
-      listingUrl: 'https://www.zillow.com/example-2',
-      description: 'Large development opportunity with utilities available',
+      listingUrl: '', // Real implementation would have actual listing URL from web scraping
+      description: 'Large development opportunity with utilities available. 240MW formal request submitted. Natural gas allowed.',
       zoning: 'Agricultural/Industrial',
     },
     {
@@ -162,7 +164,7 @@ function generateMockResults(params: SearchParams): LandListing[] {
       county: params.county || 'Collin',
       acreage: 50,
       price: 4000000,
-      listingUrl: 'https://www.realtor.com/example-3',
+      listingUrl: '', // Real implementation would have actual listing URL from web scraping
       description: 'Excellent views, suitable for luxury development',
       zoning: 'Residential',
     },
