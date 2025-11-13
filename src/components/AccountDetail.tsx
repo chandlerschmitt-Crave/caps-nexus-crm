@@ -32,6 +32,7 @@ interface Account {
   id: string;
   name: string;
   type_of_account: string | null;
+  investor_status: string | null;
   website: string | null;
   phone: string | null;
   city: string | null;
@@ -361,6 +362,19 @@ export function AccountDetail({ accountId, open, onOpenChange, onRefresh }: Acco
                   <Label className="text-muted-foreground">Type</Label>
                   <div className="mt-1">
                     <Badge variant="secondary">{account.type_of_account}</Badge>
+                  </div>
+                </div>
+              )}
+
+              {account.investor_status && (
+                <div>
+                  <Label className="text-muted-foreground">Investor Status</Label>
+                  <div className="mt-1">
+                    <Badge 
+                      variant={account.investor_status === 'Active_Investor' ? 'default' : 'outline'}
+                    >
+                      {account.investor_status.replace(/_/g, ' ')}
+                    </Badge>
                   </div>
                 </div>
               )}

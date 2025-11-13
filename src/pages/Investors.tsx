@@ -7,11 +7,19 @@ import { AccountForm } from '@/components/forms/AccountForm';
 import { AccountDetail } from '@/components/AccountDetail';
 import { supabase } from '@/integrations/supabase/client';
 import { Building2, MapPin, Phone, Globe, Plus, Users, DollarSign } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface Investor {
   id: string;
   name: string;
   type_of_account: string | null;
+  investor_status: string | null;
   city: string | null;
   state: string | null;
   country: string | null;
@@ -28,6 +36,7 @@ export default function Investors() {
   const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [totalCapital, setTotalCapital] = useState(0);
+  const [statusFilter, setStatusFilter] = useState<string>('all');
 
   useEffect(() => {
     loadInvestors();
@@ -70,6 +79,10 @@ export default function Investors() {
     setDetailOpen(true);
   };
 
+  const filteredInvestors = statusFilter === 'all' 
+    ? investors 
+    : investors.filter(inv => inv.investor_status === statusFilter);
+
   return (
     <Layout>
       <div className="space-y-6">
@@ -78,10 +91,24 @@ export default function Investors() {
             <h1 className="text-3xl font-bold tracking-tight">Investors</h1>
             <p className="text-muted-foreground">Manage investor relationships</p>
           </div>
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Investor
-          </Button>
+          <div className="flex items-center gap-3">
+            <Select value={statusFilter} onValueChange={setStatusFilter}>
+              <SelectTrigger className="w-[200px] bg-background">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover z-50">
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="In_Conversation">In Conversation</SelectItem>
+                <SelectItem value="Discussing_Terms">Discussing Terms</SelectItem>
+                <SelectItem value="Closing_Signatures">Closing Signatures</SelectItem>
+                <SelectItem value="Active_Investor">Active Investor</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button onClick={() => setDialogOpen(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Investor
+            </Button>
+          </div>
         </div>
 
         {/* Total Capital Invested Card */}
@@ -113,22 +140,28 @@ export default function Investors() {
         />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {investors.length === 0 ? (
+          {filteredInvestors.length === 0 ? (
             <Card className="col-span-full">
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium mb-2">No investors yet</p>
-                <p className="text-muted-foreground mb-4">
-                  Add your first investor to start tracking relationships
+                <p className="text-lg font-medium mb-2">
+                  {statusFilter === 'all' ? 'No investors yet' : 'No investors with this status'}
                 </p>
-                <Button onClick={() => setDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Investor
-                </Button>
+                <p className="text-muted-foreground mb-4">
+                  {statusFilter === 'all' 
+                    ? 'Add your first investor to start tracking relationships'
+                    : 'Try changing the status filter'}
+                </p>
+                {statusFilter === 'all' && (
+                  <Button onClick={() => setDialogOpen(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Investor
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ) : (
-            investors.map((investor) => (
+            filteredInvestors.map((investor) => (
               <Card 
                 key={investor.id} 
                 className="hover:shadow-md transition-shadow cursor-pointer"
@@ -141,11 +174,21 @@ export default function Investors() {
                       <CardTitle className="text-base mb-2">
                         {investor.name}
                       </CardTitle>
-                      {investor.type_of_account && (
-                        <Badge variant="secondary" className="text-xs">
-                          {investor.type_of_account}
-                        </Badge>
-                      )}
+                      <div className="flex flex-wrap gap-2">
+                        {investor.type_of_account && (
+                          <Badge variant="secondary" className="text-xs">
+                            {investor.type_of_account}
+                          </Badge>
+                        )}
+                        {investor.investor_status && (
+                          <Badge 
+                            variant={investor.investor_status === 'Active_Investor' ? 'default' : 'outline'} 
+                            className="text-xs"
+                          >
+                            {investor.investor_status.replace(/_/g, ' ')}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </CardHeader>

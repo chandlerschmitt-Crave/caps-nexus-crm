@@ -22,10 +22,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 const accountSchema = z.object({
   name: z.string().trim().min(1, 'Account name is required').max(200),
   type_of_account: z.string().trim().max(100).optional().or(z.literal('')),
+  investor_status: z.string().trim().optional().or(z.literal('')),
   website: z.string().trim().url('Invalid website URL').max(255).optional().or(z.literal('')),
   phone: z.string().trim().max(20).optional().or(z.literal('')),
   city: z.string().trim().max(100).optional().or(z.literal('')),
@@ -56,6 +64,7 @@ export function AccountForm({ open, onOpenChange, onSuccess }: AccountFormProps)
     defaultValues: {
       name: '',
       type_of_account: '',
+      investor_status: 'In_Conversation',
       website: '',
       phone: '',
       city: '',
@@ -76,6 +85,7 @@ export function AccountForm({ open, onOpenChange, onSuccess }: AccountFormProps)
       const accountData = {
         name: values.name,
         type_of_account: values.type_of_account || null,
+        investor_status: values.investor_status || 'In_Conversation',
         website: values.website || null,
         phone: values.phone || null,
         city: values.city || null,
@@ -155,6 +165,30 @@ export function AccountForm({ open, onOpenChange, onSuccess }: AccountFormProps)
                     <FormControl>
                       <Input placeholder="e.g., DevCo, Investor, Lender" {...field} />
                     </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="investor_status"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Investor Status</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger className="bg-background">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent className="bg-popover z-50">
+                        <SelectItem value="In_Conversation">In Conversation</SelectItem>
+                        <SelectItem value="Discussing_Terms">Discussing Terms</SelectItem>
+                        <SelectItem value="Closing_Signatures">Closing Signatures</SelectItem>
+                        <SelectItem value="Active_Investor">Active Investor</SelectItem>
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
