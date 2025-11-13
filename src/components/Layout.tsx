@@ -2,7 +2,8 @@ import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { Building2, LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin } from 'lucide-react';
+import capsCapitalLogo from '@/assets/caps-capital-logo.jpg';
 
 interface LayoutProps {
   children: ReactNode;
@@ -29,9 +30,8 @@ export function Layout({ children }: LayoutProps) {
       <header className="border-b bg-primary border-primary">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-6">
-            <Link to="/dashboard" className="flex items-center gap-2 font-semibold text-primary-foreground">
-              <Building2 className="h-6 w-6 text-accent" />
-              <span className="text-lg">Caps Capital</span>
+            <Link to="/dashboard" className="flex items-center">
+              <img src={capsCapitalLogo} alt="Caps Capital Enterprises" className="h-10" />
             </Link>
             <nav className="hidden md:flex gap-1">
               {navigation.map((item) => {
