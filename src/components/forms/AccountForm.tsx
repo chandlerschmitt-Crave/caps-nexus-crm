@@ -32,6 +32,11 @@ const accountSchema = z.object({
   state: z.string().trim().length(2, 'State must be 2 characters').optional().or(z.literal('')),
   country: z.string().trim().max(100).optional().or(z.literal('')),
   notes: z.string().trim().max(2000).optional().or(z.literal('')),
+  capital_invested: z.string().trim().max(50).optional().or(z.literal('')),
+  investment_type: z.string().trim().max(500).optional().or(z.literal('')),
+  investment_term: z.string().trim().max(500).optional().or(z.literal('')),
+  investment_rate: z.string().trim().max(500).optional().or(z.literal('')),
+  financing_type: z.string().trim().max(500).optional().or(z.literal('')),
 });
 
 type AccountFormValues = z.infer<typeof accountSchema>;
@@ -57,6 +62,11 @@ export function AccountForm({ open, onOpenChange, onSuccess }: AccountFormProps)
       state: '',
       country: '',
       notes: '',
+      capital_invested: '',
+      investment_type: '',
+      investment_term: '',
+      investment_rate: '',
+      financing_type: '',
     },
   });
 
@@ -72,6 +82,11 @@ export function AccountForm({ open, onOpenChange, onSuccess }: AccountFormProps)
         state: values.state || null,
         country: values.country || null,
         notes: values.notes || null,
+        capital_invested: values.capital_invested ? parseFloat(values.capital_invested) : null,
+        investment_type: values.investment_type || null,
+        investment_term: values.investment_term || null,
+        investment_rate: values.investment_rate || null,
+        financing_type: values.financing_type || null,
       };
 
       const { error } = await supabase.from('accounts').insert([accountData]);
@@ -212,6 +227,86 @@ export function AccountForm({ open, onOpenChange, onSuccess }: AccountFormProps)
                       <FormLabel>Country</FormLabel>
                       <FormControl>
                         <Input placeholder="USA" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="col-span-2">
+                <FormField
+                  control={form.control}
+                  name="capital_invested"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Capital Invested</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="1000000" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="col-span-2">
+                <FormField
+                  control={form.control}
+                  name="investment_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type of Investment/Note</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="e.g., Senior Secured Note, Preferred Equity..." rows={2} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="col-span-2">
+                <FormField
+                  control={form.control}
+                  name="investment_term"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Term of Investment</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="e.g., 24 months, 3 years..." rows={2} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="col-span-2">
+                <FormField
+                  control={form.control}
+                  name="investment_rate"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Rate</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="e.g., 12% annual, LIBOR + 500bps..." rows={2} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="col-span-2">
+                <FormField
+                  control={form.control}
+                  name="financing_type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Type of Financing</FormLabel>
+                      <FormControl>
+                        <Textarea placeholder="e.g., Interest Only, Mezzanine Loan, Construction Loan..." rows={2} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -38,6 +38,11 @@ interface Account {
   state: string | null;
   country: string | null;
   notes: string | null;
+  capital_invested: number | null;
+  investment_type: string | null;
+  investment_term: string | null;
+  investment_rate: string | null;
+  financing_type: string | null;
 }
 
 interface Project {
@@ -357,6 +362,43 @@ export function AccountDetail({ accountId, open, onOpenChange, onRefresh }: Acco
                   <div className="mt-1">
                     <Badge variant="secondary">{account.type_of_account}</Badge>
                   </div>
+                </div>
+              )}
+
+              {account.capital_invested !== null && (
+                <div>
+                  <Label className="text-muted-foreground">Capital Invested</Label>
+                  <p className="text-sm mt-1 font-semibold">
+                    ${account.capital_invested.toLocaleString()}
+                  </p>
+                </div>
+              )}
+
+              {account.investment_type && (
+                <div>
+                  <Label className="text-muted-foreground">Type of Investment/Note</Label>
+                  <p className="text-sm mt-1">{account.investment_type}</p>
+                </div>
+              )}
+
+              {account.investment_term && (
+                <div>
+                  <Label className="text-muted-foreground">Term of Investment</Label>
+                  <p className="text-sm mt-1">{account.investment_term}</p>
+                </div>
+              )}
+
+              {account.investment_rate && (
+                <div>
+                  <Label className="text-muted-foreground">Rate</Label>
+                  <p className="text-sm mt-1">{account.investment_rate}</p>
+                </div>
+              )}
+
+              {account.financing_type && (
+                <div>
+                  <Label className="text-muted-foreground">Type of Financing</Label>
+                  <p className="text-sm mt-1">{account.financing_type}</p>
                 </div>
               )}
 

@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { AccountForm } from '@/components/forms/AccountForm';
 import { AccountDetail } from '@/components/AccountDetail';
 import { supabase } from '@/integrations/supabase/client';
-import { Building2, MapPin, Phone, Globe, Plus, Users } from 'lucide-react';
+import { Building2, MapPin, Phone, Globe, Plus, Users, DollarSign } from 'lucide-react';
 
 interface Investor {
   id: string;
@@ -18,6 +18,7 @@ interface Investor {
   phone: string | null;
   website: string | null;
   notes: string | null;
+  capital_invested: number | null;
   _count?: { contacts: number };
 }
 
@@ -26,6 +27,7 @@ export default function Investors() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [totalCapital, setTotalCapital] = useState(0);
 
   useEffect(() => {
     loadInvestors();
@@ -54,6 +56,12 @@ export default function Investors() {
         })
       );
       setInvestors(investorsWithCounts);
+      
+      // Calculate total capital invested
+      const total = investorsWithCounts.reduce((sum, inv) => 
+        sum + (inv.capital_invested || 0), 0
+      );
+      setTotalCapital(total);
     }
   };
 
@@ -75,6 +83,21 @@ export default function Investors() {
             Add Investor
           </Button>
         </div>
+
+        {/* Total Capital Invested Card */}
+        <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <DollarSign className="h-5 w-5 text-primary" />
+              Total Invested Capital
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-3xl font-bold">
+              ${totalCapital.toLocaleString()}
+            </p>
+          </CardContent>
+        </Card>
 
         <AccountForm
           open={dialogOpen}
