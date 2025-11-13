@@ -32,9 +32,18 @@ interface Property {
   state: string;
   status: string;
   apn: string | null;
+  purchase: number | null;
+  construction_hard: number | null;
+  softs: number | null;
+  total_use_of_funds: number | null;
   land_cost: number | null;
   construction_budget: number | null;
   total_cost: number | null;
+  arv: number | null;
+  exit_costs: number | null;
+  projected_profit: number | null;
+  gross_margin: number | null;
+  roi_on_uses: number | null;
   target_resale_value: number | null;
   project: { name: string; project_type: string } | null;
 }
@@ -208,47 +217,122 @@ export function PropertyDetail({ propertyId, open, onOpenChange, onRefresh }: Pr
                 </div>
               )}
 
-              <div className="grid grid-cols-2 gap-4 pt-2 border-t">
-                {property.land_cost && (
-                  <div>
-                    <Label className="text-muted-foreground">Land Cost</Label>
-                    <p className="text-sm font-medium">
-                      ${(Number(property.land_cost) / 1000000).toFixed(2)}M
-                    </p>
+              <div className="space-y-4 pt-2 border-t">
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 text-accent">Cost Breakdown</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {property.purchase && (
+                      <div>
+                        <Label className="text-muted-foreground">Purchase Price</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.purchase).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.construction_hard && (
+                      <div>
+                        <Label className="text-muted-foreground">Hard Costs</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.construction_hard).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.softs && (
+                      <div>
+                        <Label className="text-muted-foreground">Soft Costs</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.softs).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.total_use_of_funds && (
+                      <div>
+                        <Label className="text-muted-foreground">Total Use of Funds</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.total_use_of_funds).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.land_cost && (
+                      <div>
+                        <Label className="text-muted-foreground">Land Cost</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.land_cost).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.construction_budget && (
+                      <div>
+                        <Label className="text-muted-foreground">Construction Budget</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.construction_budget).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.total_cost && (
+                      <div>
+                        <Label className="text-muted-foreground">Total Cost</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.total_cost).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
-                {property.construction_budget && (
-                  <div>
-                    <Label className="text-muted-foreground">Construction Budget</Label>
-                    <p className="text-sm font-medium">
-                      ${(Number(property.construction_budget) / 1000000).toFixed(2)}M
-                    </p>
+                </div>
+
+                <div>
+                  <h4 className="text-sm font-semibold mb-3 text-accent">Returns Analysis</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    {property.arv && (
+                      <div>
+                        <Label className="text-muted-foreground">ARV (After Repair Value)</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.arv).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.target_resale_value && (
+                      <div>
+                        <Label className="text-muted-foreground">Target Resale Value</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.target_resale_value).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.exit_costs && (
+                      <div>
+                        <Label className="text-muted-foreground">Exit Costs</Label>
+                        <p className="text-sm font-medium">
+                          ${Number(property.exit_costs).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.projected_profit && (
+                      <div>
+                        <Label className="text-muted-foreground">Projected Profit</Label>
+                        <p className={`text-sm font-bold ${Number(property.projected_profit) > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          ${Number(property.projected_profit).toLocaleString()}
+                        </p>
+                      </div>
+                    )}
+                    {property.gross_margin !== null && property.gross_margin !== undefined && (
+                      <div>
+                        <Label className="text-muted-foreground">Gross Margin</Label>
+                        <p className="text-sm font-medium">
+                          {Number(property.gross_margin).toFixed(2)}%
+                        </p>
+                      </div>
+                    )}
+                    {property.roi_on_uses !== null && property.roi_on_uses !== undefined && (
+                      <div>
+                        <Label className="text-muted-foreground">ROI on Uses</Label>
+                        <p className="text-sm font-medium">
+                          {Number(property.roi_on_uses).toFixed(2)}%
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
-                {property.total_cost && (
-                  <div>
-                    <Label className="text-muted-foreground">Total Cost</Label>
-                    <p className="text-sm font-medium">
-                      ${(Number(property.total_cost) / 1000000).toFixed(2)}M
-                    </p>
-                  </div>
-                )}
-                {property.target_resale_value && (
-                  <div>
-                    <Label className="text-muted-foreground">Target Resale</Label>
-                    <p className="text-sm font-medium">
-                      ${(Number(property.target_resale_value) / 1000000).toFixed(2)}M
-                    </p>
-                  </div>
-                )}
-                {spread !== null && (
-                  <div className="col-span-2">
-                    <Label className="text-muted-foreground">Spread</Label>
-                    <p className={`text-sm font-bold ${spread > 0 ? 'text-green-600' : 'text-red-600'}`}>
-                      ${(spread / 1000000).toFixed(2)}M
-                    </p>
-                  </div>
-                )}
+                </div>
               </div>
             </CardContent>
           </Card>
