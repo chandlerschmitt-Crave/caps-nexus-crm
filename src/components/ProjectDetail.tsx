@@ -12,13 +12,14 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { FolderKanban, Building2, Home, CheckSquare, DollarSign, Link as LinkIcon, Plus, Trash2, HardHat } from 'lucide-react';
+import { FolderKanban, Building2, Home, CheckSquare, DollarSign, Link as LinkIcon, Plus, Trash2, HardHat, Pencil, Check, X } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Textarea } from '@/components/ui/textarea';
 import { PropertyForm } from '@/components/forms/PropertyForm';
 import { DealForm } from '@/components/forms/DealForm';
 import { ConstructionTab } from '@/components/construction/ConstructionTab';
@@ -80,6 +81,12 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
     due_date: '', 
     priority: 'Med' 
   });
+  const [editingField, setEditingField] = useState<string | null>(null);
+  const [editValues, setEditValues] = useState({
+    market: '',
+    est_total_cost: '',
+    description: ''
+  });
   const { toast } = useToast();
 
   useEffect(() => {
@@ -100,6 +107,13 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
         .maybeSingle();
 
       setProject(projectData);
+      if (projectData) {
+        setEditValues({
+          market: projectData.market || '',
+          est_total_cost: projectData.est_total_cost ? String(projectData.est_total_cost) : '',
+          description: projectData.description || ''
+        });
+      }
 
       const { data: propertiesData } = await supabase
         .from('properties')
@@ -184,6 +198,63 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
 
     if (!error) {
       loadProjectDetails();
+    }
+  };
+
+  const handleUpdateField = async (field: string) => {
+    if (!projectId) return;
+
+    let updateData: any = {};
+    
+    if (field === 'est_total_cost') {
+      const value = parseFloat(editValues.est_total_cost);
+      if (isNaN(value)) {
+        toast({
+          title: 'Error',
+          description: 'Please enter a valid number',
+          variant: 'destructive',
+        });
+        return;
+      }
+      updateData.est_total_cost = value;
+    } else {
+      updateData[field] = editValues[field as keyof typeof editValues];
+    }
+
+    const { error } = await supabase
+      .from('projects')
+      .update(updateData)
+      .eq('id', projectId);
+
+    if (!error) {
+      toast({
+        title: 'Success',
+        description: 'Project updated successfully',
+      });
+      setEditingField(null);
+      loadProjectDetails();
+      onRefresh?.();
+    } else {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const startEditing = (field: string) => {
+    setEditingField(field);
+  };
+
+  const cancelEditing = () => {
+    setEditingField(null);
+    if (project) {
+      setEditValues({
+        market: project.market || '',
+        est_total_cost: project.est_total_cost ? String(project.est_total_cost) : '',
+        description: project.description || ''
+      });
     }
   };
 
@@ -324,30 +395,179 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
                     </div>
                   )}
 
-                  {project.market && (
+                  {project.market || editingField === 'market' ? (
                     <div>
-                      <Label className="text-muted-foreground">Market</Label>
-                      <p className="text-sm mt-1">{project.market}</p>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label className="text-muted-foreground">Market</Label>
+                        {editingField !== 'market' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => startEditing('market')}
+                            className="h-6 px-2"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                      {editingField === 'market' ? (
+                        <div className="flex gap-2">
+                          <Input
+                            value={editValues.market}
+                            onChange={(e) => setEditValues(prev => ({ ...prev, market: e.target.value }))}
+                            className="h-8"
+                          />
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleUpdateField('market')}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Check className="h-4 w-4 text-green-600" />
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={cancelEditing}
+                            className="h-8 w-8 p-0"
+                          >
+                            <X className="h-4 w-4 text-red-600" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <p className="text-sm mt-1">{project.market}</p>
+                      )}
                     </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEditing('market')}
+                      className="h-8"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Market
+                    </Button>
                   )}
 
-                  {project.est_total_cost && (
+                  {project.est_total_cost || editingField === 'est_total_cost' ? (
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <Label className="text-muted-foreground">Est. Total Cost</Label>
-                        <p className="text-sm font-medium">
-                          ${(Number(project.est_total_cost) / 1000000).toFixed(1)}M
-                        </p>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <Label className="text-muted-foreground">Est. Total Cost</Label>
+                          {editingField !== 'est_total_cost' && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => startEditing('est_total_cost')}
+                              className="h-6 px-2"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                        {editingField === 'est_total_cost' ? (
+                          <div className="flex gap-2">
+                            <Input
+                              type="number"
+                              value={editValues.est_total_cost}
+                              onChange={(e) => setEditValues(prev => ({ ...prev, est_total_cost: e.target.value }))}
+                              placeholder="Enter amount"
+                              className="h-8"
+                            />
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleUpdateField('est_total_cost')}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Check className="h-4 w-4 text-green-600" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={cancelEditing}
+                              className="h-8 w-8 p-0"
+                            >
+                              <X className="h-4 w-4 text-red-600" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <p className="text-sm font-medium">
+                            {formatCurrency(Number(project.est_total_cost))}
+                          </p>
+                        )}
                       </div>
                     </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEditing('est_total_cost')}
+                      className="h-8"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Estimated Cost
+                    </Button>
                   )}
 
-                  {project.description && (
+                  {project.description || editingField === 'description' ? (
                     <div>
-                      <Label className="text-muted-foreground">Description</Label>
-                      <p className="text-sm mt-1">{project.description}</p>
+                      <div className="flex items-center justify-between mb-1">
+                        <Label className="text-muted-foreground">Description</Label>
+                        {editingField !== 'description' && (
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => startEditing('description')}
+                            className="h-6 px-2"
+                          >
+                            <Pencil className="h-3 w-3" />
+                          </Button>
+                        )}
+                      </div>
+                      {editingField === 'description' ? (
+                        <div className="space-y-2">
+                          <Textarea
+                            value={editValues.description}
+                            onChange={(e) => setEditValues(prev => ({ ...prev, description: e.target.value }))}
+                            rows={4}
+                            className="resize-none"
+                          />
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleUpdateField('description')}
+                            >
+                              <Check className="h-4 w-4 text-green-600 mr-1" />
+                              Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={cancelEditing}
+                            >
+                              <X className="h-4 w-4 text-red-600 mr-1" />
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      ) : (
+                        <p className="text-sm mt-1">{project.description}</p>
+                      )}
                     </div>
+                  ) : (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => startEditing('description')}
+                      className="h-8"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add Description
+                    </Button>
                   )}
                 </CardContent>
               </Card>
