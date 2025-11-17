@@ -32,12 +32,23 @@ export default function Tasks() {
   }, [user]);
 
   const loadTasks = async () => {
-    const { data } = await supabase
+    if (!user?.id) {
+      console.log('No user ID available');
+      return;
+    }
+
+    const { data, error } = await supabase
       .from('tasks')
       .select('*, owner:profiles(name)')
-      .eq('owner_user_id', user?.id)
+      .eq('owner_user_id', user.id)
       .order('due_date', { ascending: true });
 
+    if (error) {
+      console.error('Error loading tasks:', error);
+      return;
+    }
+
+    console.log('Loaded tasks:', data);
     setTasks(data as any || []);
   };
 
