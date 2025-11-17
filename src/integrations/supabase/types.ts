@@ -16,10 +16,16 @@ export type Database = {
     Tables: {
       accounts: {
         Row: {
+          capital_invested: number | null
           city: string | null
           country: string | null
           created_at: string
+          financing_type: string | null
           id: string
+          investment_rate: string | null
+          investment_term: string | null
+          investment_type: string | null
+          investor_status: string | null
           name: string
           notes: string | null
           phone: string | null
@@ -28,10 +34,16 @@ export type Database = {
           website: string | null
         }
         Insert: {
+          capital_invested?: number | null
           city?: string | null
           country?: string | null
           created_at?: string
+          financing_type?: string | null
           id?: string
+          investment_rate?: string | null
+          investment_term?: string | null
+          investment_type?: string | null
+          investor_status?: string | null
           name: string
           notes?: string | null
           phone?: string | null
@@ -40,10 +52,16 @@ export type Database = {
           website?: string | null
         }
         Update: {
+          capital_invested?: number | null
           city?: string | null
           country?: string | null
           created_at?: string
+          financing_type?: string | null
           id?: string
+          investment_rate?: string | null
+          investment_term?: string | null
+          investment_type?: string | null
+          investor_status?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
