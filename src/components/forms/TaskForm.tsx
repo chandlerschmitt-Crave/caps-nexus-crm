@@ -34,6 +34,7 @@ import { useAuth } from '@/contexts/AuthContext';
 
 const taskSchema = z.object({
   subject: z.string().trim().min(1, 'Subject is required').max(255),
+  description: z.string().optional(),
   assignee_email: z.string().trim().email('Invalid email address').optional().or(z.literal('')),
   due_date: z.string().optional().or(z.literal('')),
   priority: z.enum(['Low', 'Med', 'High']),
@@ -59,6 +60,7 @@ export function TaskForm({ open, onOpenChange, onSuccess }: TaskFormProps) {
     resolver: zodResolver(taskSchema),
     defaultValues: {
       subject: '',
+      description: '',
       assignee_email: '',
       due_date: '',
       priority: 'Med',
@@ -99,6 +101,7 @@ export function TaskForm({ open, onOpenChange, onSuccess }: TaskFormProps) {
 
       const taskData = {
         subject: values.subject,
+        description: values.description || null,
         owner_user_id: ownerId,
         due_date: values.due_date || null,
         priority: values.priority,
@@ -152,6 +155,24 @@ export function TaskForm({ open, onOpenChange, onSuccess }: TaskFormProps) {
                   <FormLabel>Subject *</FormLabel>
                   <FormControl>
                     <Input placeholder="Review project proposal" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Description</FormLabel>
+                  <FormControl>
+                    <Textarea 
+                      placeholder="Add task details and context..." 
+                      className="min-h-[100px]"
+                      {...field} 
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
