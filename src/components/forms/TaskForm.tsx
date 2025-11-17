@@ -110,9 +110,15 @@ export function TaskForm({ open, onOpenChange, onSuccess }: TaskFormProps) {
         related_id: values.related_id || null,
       };
 
-      const { error } = await supabase.from('tasks').insert([taskData]);
+      const { data: insertedTask, error } = await supabase
+        .from('tasks')
+        .insert([taskData])
+        .select()
+        .single();
 
       if (error) throw error;
+
+      console.log('Task created:', insertedTask);
 
       toast({
         title: 'Task created',
@@ -122,8 +128,12 @@ export function TaskForm({ open, onOpenChange, onSuccess }: TaskFormProps) {
       });
 
       form.reset();
-      onSuccess?.();
       onOpenChange(false);
+      
+      // Call onSuccess after a brief delay to ensure the dialog is closed
+      setTimeout(() => {
+        onSuccess?.();
+      }, 100);
     } catch (error: any) {
       toast({
         title: 'Error',
