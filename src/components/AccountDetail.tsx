@@ -96,6 +96,7 @@ export function AccountDetail({ accountId, open, onOpenChange, onRefresh }: Acco
     due_date: '', 
     priority: 'Med' 
   });
+  const [editingStatus, setEditingStatus] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -283,6 +284,37 @@ export function AccountDetail({ accountId, open, onOpenChange, onRefresh }: Acco
     }
   };
 
+  const handleUpdateInvestorStatus = async (newStatus: string) => {
+    if (!accountId) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase
+        .from('accounts')
+        .update({ investor_status: newStatus })
+        .eq('id', accountId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Status updated',
+        description: 'Investor status has been updated successfully.',
+      });
+
+      setEditingStatus(false);
+      loadAccountDetails();
+      onRefresh?.();
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const openLinkDialog = (type: 'project' | 'property' | 'contact' | 'task') => {
     setLinkType(type);
     setSelectedId('');
@@ -369,13 +401,47 @@ export function AccountDetail({ accountId, open, onOpenChange, onRefresh }: Acco
               {account.investor_status && (
                 <div>
                   <Label className="text-muted-foreground">Investor Status</Label>
-                  <div className="mt-1">
-                    <Badge 
-                      variant={account.investor_status === 'Active_Investor' ? 'default' : 'outline'}
-                    >
-                      {account.investor_status.replace(/_/g, ' ')}
-                    </Badge>
-                  </div>
+                  {editingStatus ? (
+                    <div className="mt-1 flex items-center gap-2">
+                      <Select 
+                        value={account.investor_status}
+                        onValueChange={handleUpdateInvestorStatus}
+                      >
+                        <SelectTrigger className="w-[200px] bg-background">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover z-50">
+                          <SelectItem value="In_Conversation">In Conversation</SelectItem>
+                          <SelectItem value="Discussing_Terms">Discussing Terms</SelectItem>
+                          <SelectItem value="Closing_Signatures">Closing Signatures</SelectItem>
+                          <SelectItem value="Active_Investor">Active Investor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setEditingStatus(false)}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="mt-1 flex items-center gap-2">
+                      <Badge 
+                        variant={account.investor_status === 'Active_Investor' ? 'default' : 'outline'}
+                      >
+                        {account.investor_status.replace(/_/g, ' ')}
+                      </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setEditingStatus(true)}
+                        disabled={loading}
+                      >
+                        Edit
+                      </Button>
+                    </div>
+                  )}
                 </div>
               )}
 
