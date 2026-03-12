@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Briefcase, Building2, FolderKanban, Home, TrendingUp, DollarSign, Users, PieChart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { GuidePanel } from '@/components/dashboard/GuidePanel';
+import { DailyBrief } from '@/components/dashboard/DailyBrief';
 
 interface InvestorDeal {
   id: string;
@@ -123,6 +124,8 @@ export default function Dashboard() {
             Welcome to Caps Capital Enterprises CRM
           </p>
         </div>
+        {/* Daily Brief - Front and Center */}
+        <DailyBrief />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {statCards.map((stat) => {
