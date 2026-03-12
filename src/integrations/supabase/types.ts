@@ -1864,6 +1864,51 @@ export type Database = {
           },
         ]
       }
+      project_stage_history: {
+        Row: {
+          changed_at: string
+          changed_by_user_id: string | null
+          from_stage: string | null
+          id: string
+          notes: string | null
+          project_id: string
+          to_stage: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by_user_id?: string | null
+          from_stage?: string | null
+          id?: string
+          notes?: string | null
+          project_id: string
+          to_stage: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by_user_id?: string | null
+          from_stage?: string | null
+          id?: string
+          notes?: string | null
+          project_id?: string
+          to_stage?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_stage_history_changed_by_user_id_fkey"
+            columns: ["changed_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_stage_history_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       projects: {
         Row: {
           account_id: string
