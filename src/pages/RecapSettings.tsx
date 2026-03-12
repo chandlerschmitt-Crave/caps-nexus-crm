@@ -50,6 +50,7 @@ interface UpcomingObligation {
 export default function RecapSettings() {
   const [prefs, setPrefs] = useState<RecapPreferences | null>(null);
   const [logs, setLogs] = useState<RecapLog[]>([]);
+  const [upcomingObligations, setUpcomingObligations] = useState<UpcomingObligation[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [saving, setSaving] = useState(false);
