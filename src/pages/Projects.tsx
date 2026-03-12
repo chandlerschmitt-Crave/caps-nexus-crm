@@ -86,10 +86,20 @@ export default function Projects() {
               Development initiatives and funds
             </p>
           </div>
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Project
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setFormOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Project
+            </Button>
+            <div className="flex border rounded-md">
+              <Button variant={viewMode === 'card' ? 'secondary' : 'ghost'} size="icon" className="h-9 w-9" onClick={() => setViewMode('card')}>
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button variant={viewMode === 'table' ? 'secondary' : 'ghost'} size="icon" className="h-9 w-9" onClick={() => setViewMode('table')}>
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         <Tabs value={activeVertical} onValueChange={setActiveVertical}>
