@@ -109,7 +109,7 @@ export function ProjectForm({ open, onOpenChange, onSuccess }: ProjectFormProps)
         stage: values.stage,
       };
 
-      const { error } = await supabase.from('projects').insert([projectData]);
+      const { error } = await supabase.from('projects').insert([projectData as any]);
 
       if (error) throw error;
 
