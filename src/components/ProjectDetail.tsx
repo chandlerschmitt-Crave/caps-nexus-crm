@@ -26,6 +26,7 @@ import { ConstructionTab } from '@/components/construction/ConstructionTab';
 import { VoltQoreSiteMetricsTab } from '@/components/voltqore/VoltQoreSiteMetricsTab';
 import { CapitalStackTab } from '@/components/capital/CapitalStackTab';
 import { FinancialReturnsTab } from '@/components/capital/FinancialReturnsTab';
+import { ProjectDecisionLogTab } from '@/components/project/ProjectDecisionLogTab';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectDetailProps {
