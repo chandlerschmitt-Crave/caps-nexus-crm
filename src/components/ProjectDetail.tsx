@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { PropertyForm } from '@/components/forms/PropertyForm';
 import { DealForm } from '@/components/forms/DealForm';
 import { ConstructionTab } from '@/components/construction/ConstructionTab';
+import { VoltQoreSiteMetricsTab } from '@/components/voltqore/VoltQoreSiteMetricsTab';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectDetailProps {
