@@ -25,6 +25,7 @@ export default function Accounts() {
   const [formOpen, setFormOpen] = useState(false);
   const [selectedAccountId, setSelectedAccountId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [viewMode, setViewMode] = useViewMode('accounts');
 
   useEffect(() => {
     loadAccounts();
