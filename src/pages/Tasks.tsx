@@ -31,15 +31,18 @@ export default function Tasks() {
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const { user } = useAuth();
 
-  useEffect(() => { loadTasks(); }, [user]);
+  useEffect(() => { loadTasks(); }, [user?.id]);
 
   const loadTasks = async () => {
     if (!user?.id) return;
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('tasks')
-      .select('*, owner:profiles(name)')
+      .select('*, owner:profiles!tasks_owner_user_id_fkey(name)')
       .order('due_date', { ascending: true });
-    setTasks(data as any || []);
+    if (error) {
+      console.error('Failed to load tasks:', error);
+    }
+    setTasks((data as any) || []);
   };
 
   const toggleTask = async (taskId: string, currentStatus: string) => {
