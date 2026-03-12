@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Briefcase, Building2, FolderKanban, Home, TrendingUp, DollarSign, Users, PieChart } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { GuidePanel } from '@/components/dashboard/GuidePanel';
+import { DailyBrief } from '@/components/dashboard/DailyBrief';
 
 interface InvestorDeal {
   id: string;
