@@ -7,17 +7,20 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
+import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Clock, Settings, History, Eye, Mail, Calendar, AlertTriangle } from 'lucide-react';
+import { Send, Clock, Settings, History, Eye, Mail, Calendar, AlertTriangle, Pencil } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface RecapPreferences {
   id: string;
@@ -57,6 +60,15 @@ export default function RecapSettings() {
   const [sendTime, setSendTime] = useState('17:00');
   const [isEnabled, setIsEnabled] = useState(true);
   const [previewLog, setPreviewLog] = useState<RecapLog | null>(null);
+  
+  // Edit state
+  const [editLog, setEditLog] = useState<RecapLog | null>(null);
+  const [editNarrative, setEditNarrative] = useState('');
+  const [editHtml, setEditHtml] = useState('');
+  const [editSubject, setEditSubject] = useState('');
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [editTab, setEditTab] = useState('narrative');
+
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -139,6 +151,46 @@ export default function RecapSettings() {
       toast({ title: 'Error sending recap', description: err.message, variant: 'destructive' });
     } finally {
       setSending(false);
+    }
+  };
+
+  const openEditDialog = (log: RecapLog) => {
+    setEditLog(log);
+    setEditSubject(log.subject || '');
+    setEditNarrative(log.narrative || '');
+    setEditHtml(log.html_body || '');
+    setEditTab('narrative');
+  };
+
+  const saveRecapEdit = async () => {
+    if (!editLog) return;
+    setSavingEdit(true);
+    try {
+      // If narrative changed, update it in the HTML body too
+      let finalHtml = editHtml;
+      if (editNarrative !== editLog.narrative && editLog.html_body && editLog.narrative) {
+        // Replace the old narrative in the HTML with the new one
+        finalHtml = finalHtml.replace(editLog.narrative, editNarrative);
+      }
+
+      const { error } = await supabase
+        .from('recap_logs')
+        .update({
+          subject: editSubject,
+          narrative: editNarrative,
+          html_body: finalHtml,
+        })
+        .eq('id', editLog.id);
+
+      if (error) throw error;
+
+      toast({ title: 'Recap updated', description: 'Your edits have been saved.' });
+      setEditLog(null);
+      loadData();
+    } catch (err: any) {
+      toast({ title: 'Error saving edit', description: err.message, variant: 'destructive' });
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -238,7 +290,7 @@ export default function RecapSettings() {
             <CardContent className="space-y-4">
               <p className="text-sm text-muted-foreground">
                 Click below to generate a recap based on today's data. This will create the email
-                and log it for review. Email delivery requires a configured email domain.
+                and log it for review. You can edit the recap before sending.
               </p>
               <Button
                 onClick={sendRecapNow}
@@ -247,7 +299,7 @@ export default function RecapSettings() {
                 variant="outline"
               >
                 <Send className="mr-2 h-4 w-4" />
-                {sending ? 'Generating Recap...' : 'Send Recap Now'}
+                {sending ? 'Generating Recap...' : 'Generate Recap'}
               </Button>
 
               {logs.length > 0 && logs[0].stats && (
@@ -272,12 +324,12 @@ export default function RecapSettings() {
               <History className="h-5 w-5 text-accent" />
               Recap History
             </CardTitle>
-            <CardDescription>Previously generated recap emails</CardDescription>
+            <CardDescription>Previously generated recap emails — click edit to modify before sending</CardDescription>
           </CardHeader>
           <CardContent>
             {logs.length === 0 ? (
               <p className="text-center text-muted-foreground py-8">
-                No recaps generated yet. Click "Send Recap Now" to create your first one.
+                No recaps generated yet. Click "Generate Recap" to create your first one.
               </p>
             ) : (
               <div className="space-y-3">
@@ -298,11 +350,20 @@ export default function RecapSettings() {
                       <Badge className={getStatusBadge(log.status)}>
                         {log.status}
                       </Badge>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEditDialog(log)}
+                        title="Edit recap"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
                       {log.html_body && (
                         <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => setPreviewLog(log)}
+                          title="Preview recap"
                         >
                           <Eye className="h-4 w-4" />
                         </Button>
@@ -314,6 +375,7 @@ export default function RecapSettings() {
             )}
           </CardContent>
         </Card>
+
         {/* Investor Reporting - Upcoming Obligations */}
         <Card>
           <CardHeader>
@@ -376,6 +438,80 @@ export default function RecapSettings() {
               dangerouslySetInnerHTML={{ __html: previewLog.html_body }}
             />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editLog} onOpenChange={(open) => !open && setEditLog(null)}>
+        <DialogContent className="max-w-3xl max-h-[85vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="h-5 w-5" />
+              Edit Recap
+            </DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Subject</Label>
+              <Input
+                value={editSubject}
+                onChange={(e) => setEditSubject(e.target.value)}
+              />
+            </div>
+
+            <Tabs value={editTab} onValueChange={setEditTab}>
+              <TabsList className="w-full">
+                <TabsTrigger value="narrative" className="flex-1">Executive Brief</TabsTrigger>
+                <TabsTrigger value="html" className="flex-1">Full HTML</TabsTrigger>
+                <TabsTrigger value="preview" className="flex-1">Preview</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="narrative" className="space-y-2">
+                <Label>Executive Brief Narrative</Label>
+                <Textarea
+                  value={editNarrative}
+                  onChange={(e) => setEditNarrative(e.target.value)}
+                  className="min-h-[160px]"
+                  placeholder="Write the executive brief narrative..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  This is the AI-generated summary at the top of the recap. Edit it to refine the tone or add context.
+                </p>
+              </TabsContent>
+
+              <TabsContent value="html" className="space-y-2">
+                <Label>HTML Body</Label>
+                <Textarea
+                  value={editHtml}
+                  onChange={(e) => setEditHtml(e.target.value)}
+                  className="min-h-[300px] font-mono text-xs"
+                  placeholder="Full HTML email body..."
+                />
+                <p className="text-xs text-muted-foreground">
+                  Advanced: edit the full HTML email template directly.
+                </p>
+              </TabsContent>
+
+              <TabsContent value="preview">
+                {editHtml && (
+                  <div
+                    className="border rounded-lg p-4 max-h-[400px] overflow-auto bg-background"
+                    dangerouslySetInnerHTML={{ __html: editHtml }}
+                  />
+                )}
+              </TabsContent>
+            </Tabs>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setEditLog(null)}>
+              Cancel
+            </Button>
+            <Button onClick={saveRecapEdit} disabled={savingEdit}>
+              {savingEdit ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </Layout>
