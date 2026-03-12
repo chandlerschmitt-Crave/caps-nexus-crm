@@ -1,3 +1,7 @@
+// Document Parser — Uses Anthropic Claude API only
+// Model: claude-opus-4-5-20251101
+// Do not replace with Gemini or other providers
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
@@ -77,9 +81,10 @@ Only include fields you actually find in the document. Do not fabricate data.
     "city": { ... },
     "state": { ... }
   }
-}`;
+}
 
-// Map extracted fields to database field paths
+Return ONLY the JSON object, no other text.`;
+
 const FIELD_MAP: Record<string, string> = {
   "financial.total_project_cost": "project_financials.total_project_cost",
   "financial.equity_requirement": "project_financials.total_equity_raised",
@@ -143,6 +148,18 @@ function flattenExtracted(obj: Record<string, any>, prefix = ""): Array<{ path: 
   return results;
 }
 
+// Determine media type from file extension or URL
+function getMediaType(url: string, title: string): string {
+  const combined = (url + title).toLowerCase();
+  if (combined.includes(".pdf")) return "application/pdf";
+  if (combined.includes(".png")) return "image/png";
+  if (combined.includes(".jpg") || combined.includes(".jpeg")) return "image/jpeg";
+  if (combined.includes(".gif")) return "image/gif";
+  if (combined.includes(".webp")) return "image/webp";
+  // Default to PDF for financial documents
+  return "application/pdf";
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") return new Response(null, { headers: corsHeaders });
 
@@ -150,8 +167,8 @@ serve(async (req) => {
     const { document_id } = await req.json();
     if (!document_id) throw new Error("document_id is required");
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) throw new Error("LOVABLE_API_KEY is not configured");
+    const ANTHROPIC_API_KEY = Deno.env.get("ANTHROPIC_API_KEY");
+    if (!ANTHROPIC_API_KEY) throw new Error("ANTHROPIC_API_KEY is not configured");
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -169,116 +186,125 @@ serve(async (req) => {
     // Update status to Processing
     await supabase.from("documents").update({ parse_status: "Processing" }).eq("id", document_id);
 
-    // Get file from storage
-    let fileContent = "";
+    // Download file from storage as base64
+    let fileBase64 = "";
+    let mediaType = "application/pdf";
     const url = doc.url;
 
     if (url && url.includes("/storage/")) {
-      // It's a Supabase storage URL — download it
       const pathMatch = url.match(/\/object\/(?:public|sign)\/(.+)/);
       if (pathMatch) {
+        const storagePath = pathMatch[1].replace("documents/", "");
         const { data: fileData, error: dlErr } = await supabase.storage
           .from("documents")
-          .download(pathMatch[1].replace("documents/", ""));
-        
+          .download(storagePath);
+
         if (!dlErr && fileData) {
-          const text = await fileData.text();
-          fileContent = text.substring(0, 50000); // Limit content size
+          const arrayBuffer = await fileData.arrayBuffer();
+          const bytes = new Uint8Array(arrayBuffer);
+          // Convert to base64
+          let binary = "";
+          for (let i = 0; i < bytes.length; i++) {
+            binary += String.fromCharCode(bytes[i]);
+          }
+          fileBase64 = btoa(binary);
+          mediaType = getMediaType(url, doc.title || "");
         }
       }
     }
 
-    // If we couldn't get file content, use the document metadata
-    if (!fileContent) {
-      fileContent = `Document Title: ${doc.title}\nDocument Type: ${doc.doc_type}\nURL: ${doc.url}\n\nNote: Could not access file content directly. Please extract any data visible from the metadata and title.`;
+    // Build Claude API message content
+    const messageContent: any[] = [];
+
+    if (fileBase64) {
+      // Use Claude's native document/image reading capability
+      const isImage = mediaType.startsWith("image/");
+      messageContent.push({
+        type: isImage ? "image" : "document",
+        source: {
+          type: "base64",
+          media_type: mediaType,
+          data: fileBase64,
+        },
+      });
     }
 
     const docTypeHint = doc.doc_type || "Unknown";
+    messageContent.push({
+      type: "text",
+      text: `Document Type: ${docTypeHint}\n\n${EXTRACTION_PROMPT}`,
+    });
 
-    // Call Lovable AI Gateway
-    const aiResponse = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+    // If no file content was available, add a note
+    if (!fileBase64) {
+      messageContent.unshift({
+        type: "text",
+        text: `Document Title: ${doc.title}\nDocument Type: ${docTypeHint}\nURL: ${doc.url}\n\nNote: Could not access file content directly. Extract any data from the metadata above.`,
+      });
+    }
+
+    // Call Anthropic Claude API directly
+    const aiResponse = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
         "Content-Type": "application/json",
+        "x-api-key": ANTHROPIC_API_KEY,
+        "anthropic-version": "2023-06-01",
       },
       body: JSON.stringify({
-        model: "google/gemini-2.5-pro",
+        model: "claude-opus-4-5-20251101",
+        max_tokens: 4000,
         messages: [
-          { role: "system", content: EXTRACTION_PROMPT },
           {
             role: "user",
-            content: `Document Type: ${docTypeHint}\n\nDocument Content:\n${fileContent}`,
+            content: messageContent,
           },
         ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "extract_document_data",
-              description: "Extract structured data from the document",
-              parameters: {
-                type: "object",
-                properties: {
-                  financial: { type: "object" },
-                  deal_project: { type: "object" },
-                  investor_party: { type: "object" },
-                  voltqore: { type: "object" },
-                  property: { type: "object" },
-                },
-              },
-            },
-          },
-        ],
-        tool_choice: { type: "function", function: { name: "extract_document_data" } },
       }),
     });
 
     if (!aiResponse.ok) {
       const errText = await aiResponse.text();
-      console.error("AI Gateway error:", aiResponse.status, errText);
-      
+      console.error("Anthropic API error:", aiResponse.status, errText);
+
+      await supabase.from("documents").update({ parse_status: "Failed" }).eq("id", document_id);
+
       if (aiResponse.status === 429) {
-        await supabase.from("documents").update({ parse_status: "Failed" }).eq("id", document_id);
         return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
           status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
-      if (aiResponse.status === 402) {
-        await supabase.from("documents").update({ parse_status: "Failed" }).eq("id", document_id);
-        return new Response(JSON.stringify({ error: "AI credits exhausted. Please add funds." }), {
-          status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      if (aiResponse.status === 401) {
+        return new Response(JSON.stringify({ error: "Invalid ANTHROPIC_API_KEY. Check your API key configuration." }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       }
 
-      await supabase.from("documents").update({ parse_status: "Failed" }).eq("id", document_id);
-      throw new Error(`AI gateway error: ${aiResponse.status}`);
+      throw new Error(`Anthropic API error: ${aiResponse.status}`);
     }
 
     const aiData = await aiResponse.json();
-    
-    // Extract the tool call response
+
+    // Extract JSON from Claude's text response
     let extractedData: Record<string, any> = {};
-    const toolCall = aiData.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
+    const textContent = aiData.content?.find((c: any) => c.type === "text");
+    if (textContent?.text) {
       try {
-        extractedData = typeof toolCall.function.arguments === "string" 
-          ? JSON.parse(toolCall.function.arguments) 
-          : toolCall.function.arguments;
+        // Try parsing the entire response as JSON first
+        extractedData = JSON.parse(textContent.text);
       } catch {
-        // Try content fallback
-        const content = aiData.choices?.[0]?.message?.content;
-        if (content) {
-          const jsonMatch = content.match(/\{[\s\S]*\}/);
-          if (jsonMatch) extractedData = JSON.parse(jsonMatch[0]);
+        // Fall back to extracting JSON from within the text
+        const jsonMatch = textContent.text.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          extractedData = JSON.parse(jsonMatch[0]);
         }
       }
     }
 
     // Flatten and create field mappings
     const fields = flattenExtracted(extractedData);
-    const avgConfidence = fields.length > 0 
-      ? fields.reduce((s, f) => s + f.confidence, 0) / fields.length 
+    const avgConfidence = fields.length > 0
+      ? fields.reduce((s, f) => s + f.confidence, 0) / fields.length
       : 0;
 
     // Delete old mappings for re-parse
@@ -307,8 +333,8 @@ serve(async (req) => {
     }).eq("id", document_id);
 
     return new Response(
-      JSON.stringify({ 
-        success: true, 
+      JSON.stringify({
+        success: true,
         fields_extracted: fields.length,
         avg_confidence: Math.round(avgConfidence),
         data: extractedData,
