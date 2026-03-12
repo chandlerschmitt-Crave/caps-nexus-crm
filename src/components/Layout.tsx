@@ -2,8 +2,10 @@ import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin, Mail, Shield, BookOpen } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin, Mail, Shield, BookOpen, Search } from 'lucide-react';
 import capsCapitalLogo from '@/assets/caps-capital-logo.jpg';
+import { GlobalSearch } from '@/components/GlobalSearch';
+import { NotificationBell } from '@/components/NotificationBell';
 
 interface LayoutProps {
   children: ReactNode;
@@ -57,10 +59,23 @@ export function Layout({ children }: LayoutProps) {
               })}
             </nav>
           </div>
-          <Button variant="ghost" size="sm" onClick={signOut} className="text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground">
-            <LogOut className="mr-2 h-4 w-4" />
-            Sign Out
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground gap-2"
+              onClick={() => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', metaKey: true }))}
+            >
+              <Search className="h-4 w-4" />
+              <span className="hidden lg:inline text-xs opacity-70">⌘K</span>
+            </Button>
+            <NotificationBell />
+            <Button variant="ghost" size="sm" onClick={signOut} className="text-primary-foreground hover:bg-primary/80 hover:text-primary-foreground">
+              <LogOut className="mr-2 h-4 w-4" />
+              Sign Out
+            </Button>
+          </div>
+          <GlobalSearch />
         </div>
       </header>
       <main className="flex-1 bg-background">

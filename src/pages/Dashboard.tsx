@@ -10,6 +10,7 @@ import { VoltQorePortfolioCard } from '@/components/dashboard/VoltQorePortfolioC
 import { PortfolioFinancialSummary } from '@/components/dashboard/PortfolioFinancialSummary';
 import { InvestorObligationsWidget } from '@/components/dashboard/InvestorObligationsWidget';
 import { ComplianceWidget } from '@/components/dashboard/ComplianceWidget';
+import { RecentlyViewed } from '@/components/dashboard/RecentlyViewed';
 
 interface InvestorDeal {
   id: string;
@@ -131,6 +132,7 @@ export default function Dashboard() {
         {/* Daily Brief - Front and Center */}
         <DailyBrief />
 
+        <RecentlyViewed />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {statCards.map((stat) => {
             const Icon = stat.icon;

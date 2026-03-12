@@ -4,10 +4,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { FolderKanban, MapPin, DollarSign, Plus } from 'lucide-react';
+import { FolderKanban, MapPin, DollarSign, Plus, LayoutGrid, List } from 'lucide-react';
 import { ProjectForm } from '@/components/forms/ProjectForm';
 import { ProjectDetail } from '@/components/ProjectDetail';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useViewMode } from '@/hooks/use-view-mode';
 
 interface Project {
   id: string;
@@ -34,6 +36,7 @@ export default function Projects() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [activeVertical, setActiveVertical] = useState('all');
+  const [viewMode, setViewMode] = useViewMode('projects');
 
   useEffect(() => {
     loadProjects();
@@ -83,10 +86,20 @@ export default function Projects() {
               Development initiatives and funds
             </p>
           </div>
-          <Button onClick={() => setFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Project
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button onClick={() => setFormOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Project
+            </Button>
+            <div className="flex border rounded-md">
+              <Button variant={viewMode === 'card' ? 'secondary' : 'ghost'} size="icon" className="h-9 w-9" onClick={() => setViewMode('card')}>
+                <LayoutGrid className="h-4 w-4" />
+              </Button>
+              <Button variant={viewMode === 'table' ? 'secondary' : 'ghost'} size="icon" className="h-9 w-9" onClick={() => setViewMode('table')}>
+                <List className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
         </div>
 
         <Tabs value={activeVertical} onValueChange={setActiveVertical}>
@@ -110,63 +123,92 @@ export default function Projects() {
           onRefresh={loadProjects}
         />
 
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filteredProjects.map((project) => (
-            <Card 
-              key={project.id} 
-              className="hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => {
-                setSelectedProjectId(project.id);
-                setDetailOpen(true);
-              }}
-            >
-              <CardHeader>
-                <div className="flex items-start gap-3">
-                  <FolderKanban className="h-5 w-5 text-primary mt-1" />
-                  <div className="flex-1">
-                    <CardTitle className="text-lg mb-2">
-                      {project.name}
-                    </CardTitle>
-                    <div className="flex flex-wrap gap-2">
-                      <Badge variant="secondary" className="text-xs">
-                        {project.project_type.replace('_', ' ')}
-                      </Badge>
-                      <Badge className={`text-xs ${getStageColor(project.stage)}`}>
-                        {project.stage}
-                      </Badge>
-                      {project.vertical && (
-                        <Badge variant="outline" className="text-xs">
-                          {project.vertical.replace('_', ' ')}
+        {viewMode === 'table' ? (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Vertical</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Stage</TableHead>
+                  <TableHead>Market</TableHead>
+                  <TableHead className="text-right">Est. Cost</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredProjects.map((project) => (
+                  <TableRow key={project.id} className="cursor-pointer hover:bg-muted/50" onClick={() => { setSelectedProjectId(project.id); setDetailOpen(true); }}>
+                    <TableCell className="font-medium">{project.name}</TableCell>
+                    <TableCell>{project.vertical?.replace(/_/g, ' ') || '—'}</TableCell>
+                    <TableCell>{project.project_type.replace('_', ' ')}</TableCell>
+                    <TableCell><Badge className={`text-xs ${getStageColor(project.stage)}`}>{project.stage}</Badge></TableCell>
+                    <TableCell>{project.market || '—'}</TableCell>
+                    <TableCell className="text-right">{project.est_total_cost ? `$${(Number(project.est_total_cost) / 1000000).toFixed(1)}M` : '—'}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredProjects.map((project) => (
+              <Card 
+                key={project.id} 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => {
+                  setSelectedProjectId(project.id);
+                  setDetailOpen(true);
+                }}
+              >
+                <CardHeader>
+                  <div className="flex items-start gap-3">
+                    <FolderKanban className="h-5 w-5 text-primary mt-1" />
+                    <div className="flex-1">
+                      <CardTitle className="text-lg mb-2">
+                        {project.name}
+                      </CardTitle>
+                      <div className="flex flex-wrap gap-2">
+                        <Badge variant="secondary" className="text-xs">
+                          {project.project_type.replace('_', ' ')}
                         </Badge>
-                      )}
+                        <Badge className={`text-xs ${getStageColor(project.stage)}`}>
+                          {project.stage}
+                        </Badge>
+                        {project.vertical && (
+                          <Badge variant="outline" className="text-xs">
+                            {project.vertical.replace('_', ' ')}
+                          </Badge>
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </CardHeader>
-              <CardContent className="space-y-2">
-                {project.account && (
-                  <p className="text-sm text-muted-foreground">
-                    {project.account.name}
-                  </p>
-                )}
-                {project.market && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <MapPin className="h-4 w-4" />
-                    <span>{project.market}</span>
-                  </div>
-                )}
-                {project.est_total_cost && (
-                  <div className="flex items-center gap-2 text-sm font-semibold text-primary">
-                    <DollarSign className="h-4 w-4" />
-                    <span>
-                      ${(Number(project.est_total_cost) / 1000000).toFixed(1)}M
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  {project.account && (
+                    <p className="text-sm text-muted-foreground">
+                      {project.account.name}
+                    </p>
+                  )}
+                  {project.market && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="h-4 w-4" />
+                      <span>{project.market}</span>
+                    </div>
+                  )}
+                  {project.est_total_cost && (
+                    <div className="flex items-center gap-2 text-sm font-semibold text-primary">
+                      <DollarSign className="h-4 w-4" />
+                      <span>
+                        ${(Number(project.est_total_cost) / 1000000).toFixed(1)}M
+                      </span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
     </Layout>
   );
