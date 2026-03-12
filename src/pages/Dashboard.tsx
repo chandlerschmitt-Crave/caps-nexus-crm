@@ -201,6 +201,8 @@ export default function Dashboard() {
           </Card>
         </div>
 
+        <VoltQorePortfolioCard />
+
         <Card>
           <CardHeader>
             <CardTitle>Recent Investments</CardTitle>
