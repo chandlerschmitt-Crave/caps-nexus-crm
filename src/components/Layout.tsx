@@ -28,6 +28,7 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Compliance', href: '/compliance', icon: Shield },
     { name: 'Decisions', href: '/decisions', icon: BookOpen },
     { name: 'Recap', href: '/recap-settings', icon: Mail },
+    { name: 'Doc Parser', href: '/document-parser', icon: Sparkles },
   ];
 
   return (
