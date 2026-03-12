@@ -30,18 +30,19 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 
+const STANDARD_STAGES = ['Ideation', 'Pre-Dev', 'Raising', 'Entitlements', 'Construction', 'Stabilization', 'Exit'] as const;
+const VOLTQORE_STAGES = ['Site_Identified', 'Underwriting', 'LOI_Ground_Lease', 'Permits', 'Incentive_Applications', 'Shovel_Ready', 'Construction', 'Energized', 'Stabilized_Operations'] as const;
+const VERTICALS = ['TerraQore', 'VoltQore', 'Malibu_Luxury_Estates', 'Digital_Assets', 'CAPS_Platform'] as const;
+
 const projectSchema = z.object({
   name: z.string().trim().min(1, 'Project name is required').max(200),
   account_name: z.string().trim().min(1, 'Account name is required').max(200),
-  project_type: z.enum(['AI_Data_Center', 'Luxury_Res', 'Tokenized_Fund'], {
-    required_error: 'Project type is required',
-  }),
+  project_type: z.string().min(1, 'Project type is required'),
+  vertical: z.string().optional().or(z.literal('')),
   market: z.string().trim().max(100).optional().or(z.literal('')),
   description: z.string().trim().max(2000).optional().or(z.literal('')),
   est_total_cost: z.number().positive('Cost must be positive').optional().or(z.literal(0)),
-  stage: z.enum(['Ideation', 'Pre-Dev', 'Raising', 'Entitlements', 'Construction', 'Stabilization', 'Exit'], {
-    required_error: 'Stage is required',
-  }),
+  stage: z.string().min(1, 'Stage is required'),
 });
 
 type ProjectFormValues = z.infer<typeof projectSchema>;
@@ -62,12 +63,16 @@ export function ProjectForm({ open, onOpenChange, onSuccess }: ProjectFormProps)
       name: '',
       account_name: '',
       project_type: 'AI_Data_Center',
+      vertical: '',
       market: '',
       description: '',
       est_total_cost: 0,
       stage: 'Ideation',
     },
   });
+
+  const selectedVertical = form.watch('vertical');
+  const stages = selectedVertical === 'VoltQore' ? VOLTQORE_STAGES : STANDARD_STAGES;
 
   const onSubmit = async (values: ProjectFormValues) => {
     setLoading(true);
