@@ -36,6 +36,7 @@ export default function Projects() {
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
   const [activeVertical, setActiveVertical] = useState('all');
+  const [viewMode, setViewMode] = useViewMode('projects');
 
   useEffect(() => {
     loadProjects();
