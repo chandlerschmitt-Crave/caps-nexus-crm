@@ -105,6 +105,9 @@ export default function Tasks() {
                         {task.description && (
                           <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
                         )}
+                        {task.owner?.name && (
+                          <p className="text-xs text-muted-foreground mt-0.5">Assigned to: {task.owner.name}</p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <CycleBadge
