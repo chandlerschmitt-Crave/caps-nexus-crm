@@ -249,7 +249,10 @@ export default function Dashboard() {
 
         <PortfolioFinancialSummary />
 
-        <InvestorObligationsWidget />
+        <div className="grid gap-4 md:grid-cols-2">
+          <InvestorObligationsWidget />
+          <ComplianceWidget />
+        </div>
 
         <GuidePanel />
       </div>
