@@ -124,6 +124,8 @@ export default function Dashboard() {
             Welcome to Caps Capital Enterprises CRM
           </p>
         </div>
+        {/* Daily Brief - Front and Center */}
+        <DailyBrief />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {statCards.map((stat) => {
