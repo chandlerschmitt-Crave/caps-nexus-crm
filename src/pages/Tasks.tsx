@@ -38,7 +38,6 @@ export default function Tasks() {
     const { data } = await supabase
       .from('tasks')
       .select('*, owner:profiles(name)')
-      .eq('owner_user_id', user.id)
       .order('due_date', { ascending: true });
     setTasks(data as any || []);
   };
@@ -74,8 +73,8 @@ export default function Tasks() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
-            <p className="text-muted-foreground">Your action items and to-dos</p>
+            <h1 className="text-3xl font-bold tracking-tight">All Tasks</h1>
+            <p className="text-muted-foreground">Team action items and to-dos</p>
           </div>
           <Button onClick={() => setShowTaskForm(true)}>
             <Plus className="mr-2 h-4 w-4" />Add Task
@@ -105,6 +104,9 @@ export default function Tasks() {
                         />
                         {task.description && (
                           <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
+                        )}
+                        {task.owner?.name && (
+                          <p className="text-xs text-muted-foreground mt-0.5">Assigned to: {task.owner.name}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
