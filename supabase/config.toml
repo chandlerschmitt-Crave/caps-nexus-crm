@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.daily-recap]
 verify_jwt = false
+
+[functions.parse-document]
+verify_jwt = false
+
+[functions.revalidate-listing-urls]
+verify_jwt = true

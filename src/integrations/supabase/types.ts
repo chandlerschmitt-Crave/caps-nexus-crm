@@ -768,7 +768,11 @@ export type Database = {
         Row: {
           created_at: string
           doc_type: Database["public"]["Enums"]["doc_type"]
+          extracted_data: Json | null
           id: string
+          parse_confidence: number | null
+          parse_status: string | null
+          parsed_at: string | null
           related_id: string | null
           related_type: string | null
           title: string
@@ -778,7 +782,11 @@ export type Database = {
         Insert: {
           created_at?: string
           doc_type: Database["public"]["Enums"]["doc_type"]
+          extracted_data?: Json | null
           id?: string
+          parse_confidence?: number | null
+          parse_status?: string | null
+          parsed_at?: string | null
           related_id?: string | null
           related_type?: string | null
           title: string
@@ -788,7 +796,11 @@ export type Database = {
         Update: {
           created_at?: string
           doc_type?: Database["public"]["Enums"]["doc_type"]
+          extracted_data?: Json | null
           id?: string
+          parse_confidence?: number | null
+          parse_status?: string | null
+          parsed_at?: string | null
           related_id?: string | null
           related_type?: string | null
           title?: string
@@ -1655,6 +1667,50 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      parse_field_mappings: {
+        Row: {
+          confidence_pct: number | null
+          created_at: string
+          document_id: string
+          extracted_value: string | null
+          field_path: string
+          final_value: string | null
+          id: string
+          status: string
+          suggested_value: string | null
+        }
+        Insert: {
+          confidence_pct?: number | null
+          created_at?: string
+          document_id: string
+          extracted_value?: string | null
+          field_path: string
+          final_value?: string | null
+          id?: string
+          status?: string
+          suggested_value?: string | null
+        }
+        Update: {
+          confidence_pct?: number | null
+          created_at?: string
+          document_id?: string
+          extracted_value?: string | null
+          field_path?: string
+          final_value?: string | null
+          id?: string
+          status?: string
+          suggested_value?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "parse_field_mappings_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
             referencedColumns: ["id"]
           },
         ]

@@ -18,6 +18,7 @@ import LandIntelligence from "./pages/LandIntelligence";
 import RecapSettings from "./pages/RecapSettings";
 import Compliance from "./pages/Compliance";
 import DecisionLog from "./pages/DecisionLog";
+import DocumentParser from "./pages/DocumentParser";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -125,6 +126,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <DecisionLog />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/document-parser"
+              element={
+                <ProtectedRoute>
+                  <DocumentParser />
                 </ProtectedRoute>
               }
             />

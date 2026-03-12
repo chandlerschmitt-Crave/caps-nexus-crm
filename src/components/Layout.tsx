@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin, Mail, Shield, BookOpen, Search } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin, Mail, Shield, BookOpen, Search, Sparkles } from 'lucide-react';
 import capsCapitalLogo from '@/assets/caps-capital-logo.jpg';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { NotificationBell } from '@/components/NotificationBell';
@@ -28,6 +28,7 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Compliance', href: '/compliance', icon: Shield },
     { name: 'Decisions', href: '/decisions', icon: BookOpen },
     { name: 'Recap', href: '/recap-settings', icon: Mail },
+    { name: 'Doc Parser', href: '/document-parser', icon: Sparkles },
   ];
 
   return (
