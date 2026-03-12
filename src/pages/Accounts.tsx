@@ -4,9 +4,11 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { supabase } from '@/integrations/supabase/client';
-import { Building2, Globe, Phone, Plus } from 'lucide-react';
+import { Building2, Globe, Phone, Plus, LayoutGrid, List } from 'lucide-react';
 import { AccountForm } from '@/components/forms/AccountForm';
 import { AccountDetail } from '@/components/AccountDetail';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { useViewMode } from '@/hooks/use-view-mode';
 
 interface Account {
   id: string;
