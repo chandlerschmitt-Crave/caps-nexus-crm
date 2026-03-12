@@ -87,7 +87,7 @@ export default function Projects() {
         />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {projects.map((project) => (
+          {filteredProjects.map((project) => (
             <Card 
               key={project.id} 
               className="hover:shadow-md transition-shadow cursor-pointer"
