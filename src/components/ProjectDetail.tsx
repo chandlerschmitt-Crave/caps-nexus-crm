@@ -734,7 +734,7 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
             <TabsContent value="decisions" className="mt-6">
               <ProjectDecisionLogTab projectId={projectId!} />
             </TabsContent>
-            )}
+
           </Tabs>
         </div>
 
