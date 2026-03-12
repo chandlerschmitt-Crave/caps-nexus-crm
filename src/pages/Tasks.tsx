@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Layout } from '@/components/Layout';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,6 +9,8 @@ import { format } from 'date-fns';
 import { Calendar, AlertCircle, Plus, Trash2 } from 'lucide-react';
 import { TaskForm } from '@/components/forms/TaskForm';
 import { TaskDetail } from '@/components/TaskDetail';
+import { CycleBadge } from '@/components/ui/cycle-badge';
+import { InlineEdit } from '@/components/ui/inline-edit';
 
 interface Task {
   id: string;
@@ -21,72 +22,46 @@ interface Task {
   owner?: { name: string };
 }
 
+const STATUS_OPTIONS = ['Not_Started', 'In_Progress', 'Blocked', 'Done'];
+const PRIORITY_OPTIONS = ['Low', 'Med', 'High'];
+
 export default function Tasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [showTaskForm, setShowTaskForm] = useState(false);
   const [selectedTaskId, setSelectedTaskId] = useState<string | null>(null);
   const { user } = useAuth();
 
-  useEffect(() => {
-    loadTasks();
-  }, [user]);
+  useEffect(() => { loadTasks(); }, [user]);
 
   const loadTasks = async () => {
-    if (!user?.id) {
-      console.log('No user ID available');
-      return;
-    }
-
-    const { data, error } = await supabase
+    if (!user?.id) return;
+    const { data } = await supabase
       .from('tasks')
       .select('*, owner:profiles(name)')
       .eq('owner_user_id', user.id)
       .order('due_date', { ascending: true });
-
-    if (error) {
-      console.error('Error loading tasks:', error);
-      return;
-    }
-
-    console.log('Loaded tasks:', data);
     setTasks(data as any || []);
-  };
-
-  const openTaskDetail = (taskId: string) => {
-    setSelectedTaskId(taskId);
-  };
-
-  const closeTaskDetail = () => {
-    setSelectedTaskId(null);
   };
 
   const toggleTask = async (taskId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'Done' ? 'Not_Started' : 'Done';
-    
-    await supabase
-      .from('tasks')
-      .update({ status: newStatus })
-      .eq('id', taskId);
-
+    await supabase.from('tasks').update({ status: newStatus }).eq('id', taskId);
     loadTasks();
   };
 
   const deleteTask = async (taskId: string) => {
-    await supabase
-      .from('tasks')
-      .delete()
-      .eq('id', taskId);
-
+    await supabase.from('tasks').delete().eq('id', taskId);
     loadTasks();
   };
 
-  const getPriorityColor = (priority: string) => {
-    const colors: Record<string, string> = {
-      Low: 'bg-gray-100 text-gray-800',
-      Med: 'bg-yellow-100 text-yellow-800',
-      High: 'bg-red-100 text-red-800',
-    };
-    return colors[priority] || 'bg-gray-100 text-gray-800';
+  const handleInlineSubjectSave = async (taskId: string, newSubject: string) => {
+    await supabase.from('tasks').update({ subject: newSubject }).eq('id', taskId);
+    loadTasks();
+  };
+
+  const handleInlineDateSave = async (taskId: string, newDate: string) => {
+    await supabase.from('tasks').update({ due_date: newDate || null }).eq('id', taskId);
+    loadTasks();
   };
 
   const isOverdue = (dueDate: string | null) => {
@@ -103,8 +78,7 @@ export default function Tasks() {
             <p className="text-muted-foreground">Your action items and to-dos</p>
           </div>
           <Button onClick={() => setShowTaskForm(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Task
+            <Plus className="mr-2 h-4 w-4" />Add Task
           </Button>
         </div>
 
@@ -114,47 +88,45 @@ export default function Tasks() {
             const isDone = task.status === 'Done';
 
             return (
-              <Card 
-                key={task.id} 
-                className={`${isDone ? 'opacity-60' : ''} cursor-pointer hover:shadow-md transition-shadow`}
-                onClick={() => openTaskDetail(task.id)}
-              >
+              <Card key={task.id} className={`${isDone ? 'opacity-60' : ''}`}>
                 <CardContent className="flex items-start gap-4 p-4">
                   <Checkbox
                     checked={isDone}
                     onCheckedChange={() => toggleTask(task.id, task.status)}
-                    onClick={(e) => e.stopPropagation()}
                     className="mt-1"
                   />
                   <div className="flex-1 space-y-2">
                     <div className="flex items-start justify-between gap-2">
                       <div className="flex-1">
-                        <h3
-                          className={`font-medium ${
-                            isDone ? 'line-through text-muted-foreground' : ''
-                          }`}
-                        >
-                          {task.subject}
-                        </h3>
+                        <InlineEdit
+                          value={task.subject}
+                          onSave={(v) => handleInlineSubjectSave(task.id, v)}
+                          className={`font-medium ${isDone ? 'line-through text-muted-foreground' : ''}`}
+                        />
                         {task.description && (
-                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                            {task.description}
-                          </p>
+                          <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{task.description}</p>
                         )}
                       </div>
                       <div className="flex items-center gap-2">
-                        <Badge
-                          className={`text-xs ${getPriorityColor(task.priority)}`}
-                        >
-                          {task.priority}
-                        </Badge>
+                        <CycleBadge
+                          value={task.priority}
+                          options={PRIORITY_OPTIONS}
+                          table="tasks"
+                          id={task.id}
+                          field="priority"
+                          onUpdate={loadTasks}
+                        />
+                        <CycleBadge
+                          value={task.status}
+                          options={STATUS_OPTIONS}
+                          table="tasks"
+                          id={task.id}
+                          field="status"
+                          onUpdate={loadTasks}
+                        />
                         <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            deleteTask(task.id);
-                          }}
+                          variant="ghost" size="icon"
+                          onClick={(e) => { e.stopPropagation(); deleteTask(task.id); }}
                           className="h-8 w-8 text-muted-foreground hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -162,25 +134,30 @@ export default function Tasks() {
                       </div>
                     </div>
 
-                    {task.due_date && (
-                      <div
-                        className={`flex items-center gap-2 text-sm ${
-                          overdue && !isDone
-                            ? 'text-destructive font-medium'
-                            : 'text-muted-foreground'
-                        }`}
-                      >
-                        {overdue && !isDone ? (
-                          <AlertCircle className="h-4 w-4" />
-                        ) : (
-                          <Calendar className="h-4 w-4" />
-                        )}
-                        <span>
-                          Due: {format(new Date(task.due_date), 'MMM d, yyyy')}
-                          {overdue && !isDone && ' (Overdue)'}
+                    <div className="flex items-center gap-2">
+                      {task.due_date ? (
+                        <div className={`flex items-center gap-1 text-sm ${overdue && !isDone ? 'text-destructive font-medium' : 'text-muted-foreground'}`}>
+                          {overdue && !isDone ? <AlertCircle className="h-3 w-3" /> : <Calendar className="h-3 w-3" />}
+                          <InlineEdit
+                            value={task.due_date}
+                            onSave={(v) => handleInlineDateSave(task.id, v)}
+                            inputType="date"
+                            className="text-sm"
+                          />
+                          {overdue && !isDone && <span className="text-xs">(Overdue)</span>}
+                        </div>
+                      ) : (
+                        <span
+                          className="text-xs text-muted-foreground cursor-pointer hover:underline"
+                          onClick={() => {
+                            const today = format(new Date(), 'yyyy-MM-dd');
+                            handleInlineDateSave(task.id, today);
+                          }}
+                        >
+                          + Add due date
                         </span>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>
@@ -196,16 +173,11 @@ export default function Tasks() {
           )}
         </div>
 
-        <TaskForm 
-          open={showTaskForm}
-          onOpenChange={setShowTaskForm}
-          onSuccess={loadTasks}
-        />
-
+        <TaskForm open={showTaskForm} onOpenChange={setShowTaskForm} onSuccess={loadTasks} />
         <TaskDetail
           taskId={selectedTaskId}
           open={!!selectedTaskId}
-          onOpenChange={(open) => !open && closeTaskDetail()}
+          onOpenChange={(open) => !open && setSelectedTaskId(null)}
           onRefresh={loadTasks}
         />
       </div>
