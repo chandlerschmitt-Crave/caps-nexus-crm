@@ -67,9 +67,15 @@ export default function RecapSettings() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [prefsRes, logsRes] = await Promise.all([
+      const in30 = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+      const [prefsRes, logsRes, oblRes] = await Promise.all([
         supabase.from('recap_preferences').select('*').limit(1).single(),
         supabase.from('recap_logs').select('*').order('sent_at', { ascending: false }).limit(20),
+        supabase.from('investor_obligations' as any)
+          .select('id, title, obligation_type, due_date, status, account:accounts(name)')
+          .neq('status', 'Completed')
+          .lte('due_date', in30)
+          .order('due_date', { ascending: true }),
       ]);
 
       if (prefsRes.data) {
@@ -81,6 +87,8 @@ export default function RecapSettings() {
       if (logsRes.data) {
         setLogs(logsRes.data as any);
       }
+      
+      setUpcomingObligations((oblRes.data as any) || []);
     } catch (err) {
       console.error('Error loading recap data:', err);
     } finally {
