@@ -23,6 +23,7 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Properties', href: '/properties', icon: Home },
     { name: 'Tasks', href: '/tasks', icon: ListTodo },
     { name: 'Prospecting', href: '/land-intelligence', icon: MapPin },
+    { name: 'Recap', href: '/recap-settings', icon: Mail },
   ];
 
   return (
