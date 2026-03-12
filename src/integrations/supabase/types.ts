@@ -1477,6 +1477,7 @@ export type Database = {
           name: string
           project_type: Database["public"]["Enums"]["project_type"]
           stage: Database["public"]["Enums"]["project_stage"]
+          vertical: string | null
         }
         Insert: {
           account_id: string
@@ -1488,6 +1489,7 @@ export type Database = {
           name: string
           project_type: Database["public"]["Enums"]["project_type"]
           stage?: Database["public"]["Enums"]["project_stage"]
+          vertical?: string | null
         }
         Update: {
           account_id?: string
@@ -1499,6 +1501,7 @@ export type Database = {
           name?: string
           project_type?: Database["public"]["Enums"]["project_type"]
           stage?: Database["public"]["Enums"]["project_stage"]
+          vertical?: string | null
         }
         Relationships: [
           {
@@ -1721,6 +1724,119 @@ export type Database = {
         }
         Relationships: []
       }
+      voltqore_site_metrics: {
+        Row: {
+          avg_session_price_kwh: number | null
+          created_at: string | null
+          ebitda_margin_pct: number | null
+          gross_capex: number | null
+          ground_lease_executed: boolean | null
+          ground_lease_monthly: number | null
+          id: string
+          incentives_secured: number | null
+          itc_application_status: string | null
+          lcfs_credits_monthly: number | null
+          lcfs_registration_status: string | null
+          location_city: string | null
+          location_state: string | null
+          market_type: string | null
+          monthly_gross_revenue: number | null
+          net_capex: number | null
+          noi_monthly: number | null
+          notes: string | null
+          project_id: string
+          site_name: string | null
+          spv_formed: boolean | null
+          stalls_in_development: number | null
+          stalls_operational: number | null
+          status: string | null
+          tesla_om_agreement: boolean | null
+          tesla_om_cost_monthly: number | null
+          total_stalls: number | null
+          updated_at: string | null
+          utilities_network_fees_monthly: number | null
+          utilization_rate_pct: number | null
+          utilization_target_pct: number | null
+          yield_on_cost_pct: number | null
+        }
+        Insert: {
+          avg_session_price_kwh?: number | null
+          created_at?: string | null
+          ebitda_margin_pct?: number | null
+          gross_capex?: number | null
+          ground_lease_executed?: boolean | null
+          ground_lease_monthly?: number | null
+          id?: string
+          incentives_secured?: number | null
+          itc_application_status?: string | null
+          lcfs_credits_monthly?: number | null
+          lcfs_registration_status?: string | null
+          location_city?: string | null
+          location_state?: string | null
+          market_type?: string | null
+          monthly_gross_revenue?: number | null
+          net_capex?: number | null
+          noi_monthly?: number | null
+          notes?: string | null
+          project_id: string
+          site_name?: string | null
+          spv_formed?: boolean | null
+          stalls_in_development?: number | null
+          stalls_operational?: number | null
+          status?: string | null
+          tesla_om_agreement?: boolean | null
+          tesla_om_cost_monthly?: number | null
+          total_stalls?: number | null
+          updated_at?: string | null
+          utilities_network_fees_monthly?: number | null
+          utilization_rate_pct?: number | null
+          utilization_target_pct?: number | null
+          yield_on_cost_pct?: number | null
+        }
+        Update: {
+          avg_session_price_kwh?: number | null
+          created_at?: string | null
+          ebitda_margin_pct?: number | null
+          gross_capex?: number | null
+          ground_lease_executed?: boolean | null
+          ground_lease_monthly?: number | null
+          id?: string
+          incentives_secured?: number | null
+          itc_application_status?: string | null
+          lcfs_credits_monthly?: number | null
+          lcfs_registration_status?: string | null
+          location_city?: string | null
+          location_state?: string | null
+          market_type?: string | null
+          monthly_gross_revenue?: number | null
+          net_capex?: number | null
+          noi_monthly?: number | null
+          notes?: string | null
+          project_id?: string
+          site_name?: string | null
+          spv_formed?: boolean | null
+          stalls_in_development?: number | null
+          stalls_operational?: number | null
+          status?: string | null
+          tesla_om_agreement?: boolean | null
+          tesla_om_cost_monthly?: number | null
+          total_stalls?: number | null
+          updated_at?: string | null
+          utilities_network_fees_monthly?: number | null
+          utilization_rate_pct?: number | null
+          utilization_target_pct?: number | null
+          yield_on_cost_pct?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "voltqore_site_metrics_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       v_draw_continuation: {
@@ -1806,7 +1922,19 @@ export type Database = {
         | "Construction"
         | "Stabilization"
         | "Exit"
-      project_type: "AI_Data_Center" | "Luxury_Res" | "Tokenized_Fund"
+        | "Site_Identified"
+        | "Underwriting"
+        | "LOI_Ground_Lease"
+        | "Permits"
+        | "Incentive_Applications"
+        | "Shovel_Ready"
+        | "Energized"
+        | "Stabilized_Operations"
+      project_type:
+        | "AI_Data_Center"
+        | "Luxury_Res"
+        | "Tokenized_Fund"
+        | "EV_Charging"
       property_status:
         | "Sourcing"
         | "Under_Contract"
@@ -1994,8 +2122,21 @@ export const Constants = {
         "Construction",
         "Stabilization",
         "Exit",
+        "Site_Identified",
+        "Underwriting",
+        "LOI_Ground_Lease",
+        "Permits",
+        "Incentive_Applications",
+        "Shovel_Ready",
+        "Energized",
+        "Stabilized_Operations",
       ],
-      project_type: ["AI_Data_Center", "Luxury_Res", "Tokenized_Fund"],
+      project_type: [
+        "AI_Data_Center",
+        "Luxury_Res",
+        "Tokenized_Fund",
+        "EV_Charging",
+      ],
       property_status: [
         "Sourcing",
         "Under_Contract",
