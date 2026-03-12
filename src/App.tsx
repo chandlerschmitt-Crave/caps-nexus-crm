@@ -15,6 +15,7 @@ import Projects from "./pages/Projects";
 import Properties from "./pages/Properties";
 import Tasks from "./pages/Tasks";
 import LandIntelligence from "./pages/LandIntelligence";
+import RecapSettings from "./pages/RecapSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -98,6 +99,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <LandIntelligence />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/recap-settings"
+              element={
+                <ProtectedRoute>
+                  <RecapSettings />
                 </ProtectedRoute>
               }
             />

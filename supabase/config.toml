@@ -11,3 +11,6 @@ verify_jwt = true
 
 [functions.nightly-enrichment]
 verify_jwt = false
+
+[functions.daily-recap]
+verify_jwt = false
