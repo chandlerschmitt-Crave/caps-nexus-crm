@@ -38,7 +38,6 @@ export default function Tasks() {
     const { data } = await supabase
       .from('tasks')
       .select('*, owner:profiles(name)')
-      .eq('owner_user_id', user.id)
       .order('due_date', { ascending: true });
     setTasks(data as any || []);
   };
