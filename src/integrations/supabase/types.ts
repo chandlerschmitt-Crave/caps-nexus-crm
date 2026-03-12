@@ -1590,6 +1590,77 @@ export type Database = {
           },
         ]
       }
+      recap_logs: {
+        Row: {
+          error_message: string | null
+          html_body: string | null
+          id: string
+          narrative: string | null
+          recipient_count: number
+          sent_at: string
+          stats: Json | null
+          status: string
+          subject: string
+        }
+        Insert: {
+          error_message?: string | null
+          html_body?: string | null
+          id?: string
+          narrative?: string | null
+          recipient_count?: number
+          sent_at?: string
+          stats?: Json | null
+          status?: string
+          subject: string
+        }
+        Update: {
+          error_message?: string | null
+          html_body?: string | null
+          id?: string
+          narrative?: string | null
+          recipient_count?: number
+          sent_at?: string
+          stats?: Json | null
+          status?: string
+          subject?: string
+        }
+        Relationships: []
+      }
+      recap_preferences: {
+        Row: {
+          excluded_project_ids: string[] | null
+          id: string
+          is_enabled: boolean
+          send_time: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          excluded_project_ids?: string[] | null
+          id?: string
+          is_enabled?: boolean
+          send_time?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          excluded_project_ids?: string[] | null
+          id?: string
+          is_enabled?: boolean
+          send_time?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recap_preferences_updated_by_fkey"
+            columns: ["updated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tasks: {
         Row: {
           created_at: string
