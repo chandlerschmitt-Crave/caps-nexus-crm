@@ -56,13 +56,12 @@ export function GlobalSearch() {
     setLoading(true);
     const like = `%${q}%`;
 
-    const [projects, accounts, contacts, deals, tasks, parcels, compliance, decisions] = await Promise.all([
+    const [projects, accounts, contacts, deals, tasks, compliance, decisions] = await Promise.all([
       supabase.from('projects').select('id, name, vertical, stage').ilike('name', like).limit(5),
       supabase.from('accounts').select('id, name, type_of_account').ilike('name', like).limit(5),
       supabase.from('contacts').select('id, first_name, last_name, email').or(`first_name.ilike.${like},last_name.ilike.${like},email.ilike.${like}`).limit(5),
       supabase.from('deals').select('id, name, stage, instrument').ilike('name', like).limit(5),
       supabase.from('tasks').select('id, subject, status').ilike('subject', like).limit(5),
-      supabase.from('parcels').select('id, name, address, city, state').or(`name.ilike.${like},address.ilike.${like},city.ilike.${like}`).limit(5),
       supabase.from('compliance_items').select('id, title, status, item_type').ilike('title', like).limit(5),
       supabase.from('decision_log').select('id, title, decision_type').ilike('title', like).limit(5),
     ]);
@@ -73,7 +72,7 @@ export function GlobalSearch() {
     contacts.data?.forEach(c => r.push({ id: c.id, type: 'Contact', name: `${c.first_name} ${c.last_name}`, summary: c.email || '', icon: UserCircle }));
     deals.data?.forEach(d => r.push({ id: d.id, type: 'Deal', name: d.name, summary: `${d.stage} · ${d.instrument}`, icon: Briefcase }));
     tasks.data?.forEach(t => r.push({ id: t.id, type: 'Task', name: t.subject, summary: t.status?.replace(/_/g, ' ') || '', icon: ListTodo }));
-    parcels.data?.forEach(p => r.push({ id: p.id, type: 'Parcel', name: p.name || p.address || 'Parcel', summary: [p.city, p.state].filter(Boolean).join(', '), icon: MapPin }));
+    
     compliance.data?.forEach(c => r.push({ id: c.id, type: 'Compliance', name: c.title, summary: `${c.item_type} · ${c.status}`, icon: Shield }));
     decisions.data?.forEach(d => r.push({ id: d.id, type: 'Decision', name: d.title, summary: d.decision_type, icon: BookOpen }));
 
@@ -96,7 +95,7 @@ export function GlobalSearch() {
       Contact: '/contacts',
       Deal: '/pipeline',
       Task: '/tasks',
-      Parcel: '/land-intelligence',
+      
       Compliance: '/compliance',
       Decision: '/decisions',
     };

@@ -14,7 +14,7 @@ import Investors from "./pages/Investors";
 import Projects from "./pages/Projects";
 import Properties from "./pages/Properties";
 import Tasks from "./pages/Tasks";
-import LandIntelligence from "./pages/LandIntelligence";
+
 import RecapSettings from "./pages/RecapSettings";
 import Compliance from "./pages/Compliance";
 import DecisionLog from "./pages/DecisionLog";
@@ -94,14 +94,6 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <Tasks />
-                </ProtectedRoute>
-              }
-            />
-            <Route
-              path="/land-intelligence"
-              element={
-                <ProtectedRoute>
-                  <LandIntelligence />
                 </ProtectedRoute>
               }
             />

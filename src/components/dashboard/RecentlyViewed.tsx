@@ -23,7 +23,7 @@ const routeMap: Record<string, string> = {
   Contact: '/contacts',
   Deal: '/pipeline',
   Task: '/tasks',
-  Parcel: '/land-intelligence',
+  
   Compliance: '/compliance',
   Decision: '/decisions',
 };
