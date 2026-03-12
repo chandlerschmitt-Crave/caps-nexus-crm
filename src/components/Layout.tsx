@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin, Mail } from 'lucide-react';
 import capsCapitalLogo from '@/assets/caps-capital-logo.jpg';
 
 interface LayoutProps {
