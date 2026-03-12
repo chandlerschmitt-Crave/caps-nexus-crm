@@ -179,7 +179,7 @@ export function DocumentReviewPanel({ documentId, linkedRecord }: Props) {
           if (existing) {
             await supabase.from('project_financials').update(numericValues).eq('id', existing.id);
           } else {
-            await supabase.from('project_financials').insert(numericValues);
+            await supabase.from('project_financials').insert(numericValues as any);
           }
         }
 
