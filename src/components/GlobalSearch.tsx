@@ -56,13 +56,12 @@ export function GlobalSearch() {
     setLoading(true);
     const like = `%${q}%`;
 
-    const [projects, accounts, contacts, deals, tasks, parcels, compliance, decisions] = await Promise.all([
+    const [projects, accounts, contacts, deals, tasks, compliance, decisions] = await Promise.all([
       supabase.from('projects').select('id, name, vertical, stage').ilike('name', like).limit(5),
       supabase.from('accounts').select('id, name, type_of_account').ilike('name', like).limit(5),
       supabase.from('contacts').select('id, first_name, last_name, email').or(`first_name.ilike.${like},last_name.ilike.${like},email.ilike.${like}`).limit(5),
       supabase.from('deals').select('id, name, stage, instrument').ilike('name', like).limit(5),
       supabase.from('tasks').select('id, subject, status').ilike('subject', like).limit(5),
-      supabase.from('parcels').select('id, name, address, city, state').or(`name.ilike.${like},address.ilike.${like},city.ilike.${like}`).limit(5),
       supabase.from('compliance_items').select('id, title, status, item_type').ilike('title', like).limit(5),
       supabase.from('decision_log').select('id, title, decision_type').ilike('title', like).limit(5),
     ]);
