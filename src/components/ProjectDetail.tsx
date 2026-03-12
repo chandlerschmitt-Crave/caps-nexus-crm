@@ -23,6 +23,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { PropertyForm } from '@/components/forms/PropertyForm';
 import { DealForm } from '@/components/forms/DealForm';
 import { ConstructionTab } from '@/components/construction/ConstructionTab';
+import { VoltQoreSiteMetricsTab } from '@/components/voltqore/VoltQoreSiteMetricsTab';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectDetailProps {
@@ -40,6 +41,7 @@ interface Project {
   market: string | null;
   description: string | null;
   est_total_cost: number | null;
+  vertical: string | null;
   account: { name: string; type_of_account: string | null } | null;
 }
 
@@ -326,11 +328,14 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
 
         <div className="mt-6">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className={`grid w-full ${project.vertical === 'VoltQore' ? 'grid-cols-5' : 'grid-cols-4'}`}>
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="properties">Properties</TabsTrigger>
               <TabsTrigger value="deals">Deals</TabsTrigger>
               <TabsTrigger value="construction">Construction</TabsTrigger>
+              {project.vertical === 'VoltQore' && (
+                <TabsTrigger value="site-metrics">Site Metrics</TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="overview" className="mt-6 space-y-6">
@@ -378,6 +383,14 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
                           <SelectItem value="Construction">Construction</SelectItem>
                           <SelectItem value="Stabilization">Stabilization</SelectItem>
                           <SelectItem value="Exit">Exit</SelectItem>
+                          <SelectItem value="Site_Identified">Site Identified</SelectItem>
+                          <SelectItem value="Underwriting">Underwriting</SelectItem>
+                          <SelectItem value="LOI_Ground_Lease">LOI Ground Lease</SelectItem>
+                          <SelectItem value="Permits">Permits</SelectItem>
+                          <SelectItem value="Incentive_Applications">Incentive Applications</SelectItem>
+                          <SelectItem value="Shovel_Ready">Shovel Ready</SelectItem>
+                          <SelectItem value="Energized">Energized</SelectItem>
+                          <SelectItem value="Stabilized_Operations">Stabilized Operations</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
@@ -697,6 +710,12 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
             <TabsContent value="construction" className="mt-6">
               <ConstructionTab projectId={projectId!} />
             </TabsContent>
+
+            {project.vertical === 'VoltQore' && (
+              <TabsContent value="site-metrics" className="mt-6">
+                <VoltQoreSiteMetricsTab projectId={projectId!} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
 

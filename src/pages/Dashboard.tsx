@@ -6,6 +6,7 @@ import { Briefcase, Building2, FolderKanban, Home, TrendingUp, DollarSign, Users
 import { Badge } from '@/components/ui/badge';
 import { GuidePanel } from '@/components/dashboard/GuidePanel';
 import { DailyBrief } from '@/components/dashboard/DailyBrief';
+import { VoltQorePortfolioCard } from '@/components/dashboard/VoltQorePortfolioCard';
 
 interface InvestorDeal {
   id: string;
@@ -199,6 +200,8 @@ export default function Dashboard() {
             </CardContent>
           </Card>
         </div>
+
+        <VoltQorePortfolioCard />
 
         <Card>
           <CardHeader>
