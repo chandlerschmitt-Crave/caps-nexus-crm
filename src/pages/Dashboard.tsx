@@ -248,6 +248,8 @@ export default function Dashboard() {
 
         <PortfolioFinancialSummary />
 
+        <InvestorObligationsWidget />
+
         <GuidePanel />
       </div>
     </Layout>
