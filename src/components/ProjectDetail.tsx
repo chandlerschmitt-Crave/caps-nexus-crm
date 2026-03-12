@@ -710,6 +710,12 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
             <TabsContent value="construction" className="mt-6">
               <ConstructionTab projectId={projectId!} />
             </TabsContent>
+
+            {project.vertical === 'VoltQore' && (
+              <TabsContent value="site-metrics" className="mt-6">
+                <VoltQoreSiteMetricsTab projectId={projectId!} />
+              </TabsContent>
+            )}
           </Tabs>
         </div>
 
