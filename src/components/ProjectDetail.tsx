@@ -24,6 +24,8 @@ import { PropertyForm } from '@/components/forms/PropertyForm';
 import { DealForm } from '@/components/forms/DealForm';
 import { ConstructionTab } from '@/components/construction/ConstructionTab';
 import { VoltQoreSiteMetricsTab } from '@/components/voltqore/VoltQoreSiteMetricsTab';
+import { CapitalStackTab } from '@/components/capital/CapitalStackTab';
+import { FinancialReturnsTab } from '@/components/capital/FinancialReturnsTab';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectDetailProps {
