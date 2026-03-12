@@ -69,7 +69,7 @@ export default function Accounts() {
               </Button>
             </div>
           </div>
-
+        </div>
         <AccountForm 
           open={formOpen} 
           onOpenChange={setFormOpen} 
