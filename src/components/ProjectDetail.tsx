@@ -383,6 +383,14 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
                           <SelectItem value="Construction">Construction</SelectItem>
                           <SelectItem value="Stabilization">Stabilization</SelectItem>
                           <SelectItem value="Exit">Exit</SelectItem>
+                          <SelectItem value="Site_Identified">Site Identified</SelectItem>
+                          <SelectItem value="Underwriting">Underwriting</SelectItem>
+                          <SelectItem value="LOI_Ground_Lease">LOI Ground Lease</SelectItem>
+                          <SelectItem value="Permits">Permits</SelectItem>
+                          <SelectItem value="Incentive_Applications">Incentive Applications</SelectItem>
+                          <SelectItem value="Shovel_Ready">Shovel Ready</SelectItem>
+                          <SelectItem value="Energized">Energized</SelectItem>
+                          <SelectItem value="Stabilized_Operations">Stabilized Operations</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
