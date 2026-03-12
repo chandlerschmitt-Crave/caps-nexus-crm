@@ -73,8 +73,8 @@ export default function Tasks() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">My Tasks</h1>
-            <p className="text-muted-foreground">Your action items and to-dos</p>
+            <h1 className="text-3xl font-bold tracking-tight">All Tasks</h1>
+            <p className="text-muted-foreground">Team action items and to-dos</p>
           </div>
           <Button onClick={() => setShowTaskForm(true)}>
             <Plus className="mr-2 h-4 w-4" />Add Task
