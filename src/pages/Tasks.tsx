@@ -37,12 +37,26 @@ export default function Tasks() {
     if (!user?.id) return;
     const { data, error } = await supabase
       .from('tasks')
-      .select('*, owner:profiles!tasks_owner_user_id_fkey(name)')
+      .select('*')
       .order('due_date', { ascending: true });
     if (error) {
       console.error('Failed to load tasks:', error);
     }
-    setTasks((data as any) || []);
+    // Fetch owner names separately
+    const ownerIds = [...new Set((data || []).map((t: any) => t.owner_user_id).filter(Boolean))];
+    let ownerMap: Record<string, string> = {};
+    if (ownerIds.length > 0) {
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, name')
+        .in('id', ownerIds);
+      profiles?.forEach((p: any) => { ownerMap[p.id] = p.name; });
+    }
+    const enriched = (data || []).map((t: any) => ({
+      ...t,
+      owner: t.owner_user_id ? { name: ownerMap[t.owner_user_id] || 'Unknown' } : undefined,
+    }));
+    setTasks(enriched);
   };
 
   const toggleTask = async (taskId: string, currentStatus: string) => {
