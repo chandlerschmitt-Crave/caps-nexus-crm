@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Clock, Settings, History, Eye, Mail } from 'lucide-react';
+import { Send, Clock, Settings, History, Eye, Mail, Calendar, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -38,9 +38,19 @@ interface RecapLog {
   error_message: string | null;
 }
 
+interface UpcomingObligation {
+  id: string;
+  title: string;
+  obligation_type: string;
+  due_date: string;
+  status: string;
+  account?: { name: string } | null;
+}
+
 export default function RecapSettings() {
   const [prefs, setPrefs] = useState<RecapPreferences | null>(null);
   const [logs, setLogs] = useState<RecapLog[]>([]);
+  const [upcomingObligations, setUpcomingObligations] = useState<UpcomingObligation[]>([]);
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -57,9 +67,15 @@ export default function RecapSettings() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [prefsRes, logsRes] = await Promise.all([
+      const in30 = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0];
+      const [prefsRes, logsRes, oblRes] = await Promise.all([
         supabase.from('recap_preferences').select('*').limit(1).single(),
         supabase.from('recap_logs').select('*').order('sent_at', { ascending: false }).limit(20),
+        supabase.from('investor_obligations' as any)
+          .select('id, title, obligation_type, due_date, status, account:accounts(name)')
+          .neq('status', 'Completed')
+          .lte('due_date', in30)
+          .order('due_date', { ascending: true }),
       ]);
 
       if (prefsRes.data) {
@@ -71,6 +87,8 @@ export default function RecapSettings() {
       if (logsRes.data) {
         setLogs(logsRes.data as any);
       }
+      
+      setUpcomingObligations((oblRes.data as any) || []);
     } catch (err) {
       console.error('Error loading recap data:', err);
     } finally {
@@ -292,6 +310,54 @@ export default function RecapSettings() {
                     </div>
                   </div>
                 ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+        {/* Investor Reporting - Upcoming Obligations */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-accent" />
+              Investor Reporting — Next 30 Days
+            </CardTitle>
+            <CardDescription>Upcoming investor obligations to review for the daily recap</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {upcomingObligations.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                No investor obligations due in the next 30 days. All clear!
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {upcomingObligations.map((obl) => {
+                  const isOverdue = new Date(obl.due_date) < new Date();
+                  return (
+                    <div
+                      key={obl.id}
+                      className={`flex items-center justify-between p-3 border rounded-lg ${isOverdue ? 'border-red-300 bg-red-50/50 dark:bg-red-950/10' : ''}`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{obl.title}</p>
+                          <Badge variant="outline" className="text-[10px]">{obl.obligation_type.replace(/_/g, ' ')}</Badge>
+                          {isOverdue && (
+                            <Badge variant="destructive" className="text-[10px]">
+                              <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
+                              OVERDUE
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{(obl as any).account?.name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-medium ${isOverdue ? 'text-red-600' : ''}`}>
+                          {new Date(obl.due_date).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </CardContent>
