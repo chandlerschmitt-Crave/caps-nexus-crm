@@ -341,6 +341,7 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
               {project.vertical === 'VoltQore' && (
                 <TabsTrigger value="site-metrics">Site Metrics</TabsTrigger>
               )}
+              <TabsTrigger value="decisions">Decisions</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-6 space-y-6">
