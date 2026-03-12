@@ -102,6 +102,7 @@ export function ProjectForm({ open, onOpenChange, onSuccess }: ProjectFormProps)
         name: values.name,
         account_id: accountId,
         project_type: values.project_type,
+        vertical: values.vertical || null,
         market: values.market || null,
         description: values.description || null,
         est_total_cost: values.est_total_cost || null,
