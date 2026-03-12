@@ -362,8 +362,8 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
                           <div className="flex-1">
                             <p className={`text-sm font-medium ${task.status === 'Done' ? 'line-through text-muted-foreground' : ''}`}>{task.subject}</p>
                             <div className="flex gap-2 mt-1">
-                              <Badge variant="outline" className="text-xs">{task.priority}</Badge>
-                              <Badge variant="secondary" className="text-xs">{task.status.replace(/_/g, ' ')}</Badge>
+                              <CycleBadge value={task.priority} options={['Low', 'Med', 'High']} table="tasks" id={task.id} field="priority" onUpdate={loadProjectDetails} />
+                              <CycleBadge value={task.status} options={['Not_Started', 'In_Progress', 'Blocked', 'Done']} table="tasks" id={task.id} field="status" onUpdate={loadProjectDetails} />
                               {task.due_date && <span className="text-xs text-muted-foreground">Due: {new Date(task.due_date).toLocaleDateString()}</span>}
                             </div>
                           </div>
