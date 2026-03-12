@@ -41,6 +41,7 @@ interface Project {
   market: string | null;
   description: string | null;
   est_total_cost: number | null;
+  vertical: string | null;
   account: { name: string; type_of_account: string | null } | null;
 }
 
