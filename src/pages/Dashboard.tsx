@@ -10,6 +10,7 @@ import { VoltQorePortfolioCard } from '@/components/dashboard/VoltQorePortfolioC
 import { PortfolioFinancialSummary } from '@/components/dashboard/PortfolioFinancialSummary';
 import { InvestorObligationsWidget } from '@/components/dashboard/InvestorObligationsWidget';
 import { ComplianceWidget } from '@/components/dashboard/ComplianceWidget';
+import { RecentlyViewed } from '@/components/dashboard/RecentlyViewed';
 
 interface InvestorDeal {
   id: string;
