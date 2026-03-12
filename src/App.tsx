@@ -112,6 +112,22 @@ const App = () => (
                 </ProtectedRoute>
               }
             />
+            <Route
+              path="/compliance"
+              element={
+                <ProtectedRoute>
+                  <Compliance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/decisions"
+              element={
+                <ProtectedRoute>
+                  <DecisionLog />
+                </ProtectedRoute>
+              }
+            />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
