@@ -132,6 +132,7 @@ export default function Dashboard() {
         {/* Daily Brief - Front and Center */}
         <DailyBrief />
 
+        <RecentlyViewed />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {statCards.map((stat) => {
             const Icon = stat.icon;
