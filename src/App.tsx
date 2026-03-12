@@ -98,14 +98,6 @@ const App = () => (
               }
             />
             <Route
-              path="/land-intelligence"
-              element={
-                <ProtectedRoute>
-                  <LandIntelligence />
-                </ProtectedRoute>
-              }
-            />
-            <Route
               path="/recap-settings"
               element={
                 <ProtectedRoute>

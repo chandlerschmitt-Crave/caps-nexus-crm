@@ -96,7 +96,7 @@ export function GlobalSearch() {
       Contact: '/contacts',
       Deal: '/pipeline',
       Task: '/tasks',
-      Parcel: '/land-intelligence',
+      
       Compliance: '/compliance',
       Decision: '/decisions',
     };
