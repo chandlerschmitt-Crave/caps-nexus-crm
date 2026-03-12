@@ -314,6 +314,54 @@ export default function RecapSettings() {
             )}
           </CardContent>
         </Card>
+        {/* Investor Reporting - Upcoming Obligations */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5 text-accent" />
+              Investor Reporting — Next 30 Days
+            </CardTitle>
+            <CardDescription>Upcoming investor obligations to review for the daily recap</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {upcomingObligations.length === 0 ? (
+              <p className="text-center text-muted-foreground py-8">
+                No investor obligations due in the next 30 days. All clear!
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {upcomingObligations.map((obl) => {
+                  const isOverdue = new Date(obl.due_date) < new Date();
+                  return (
+                    <div
+                      key={obl.id}
+                      className={`flex items-center justify-between p-3 border rounded-lg ${isOverdue ? 'border-red-300 bg-red-50/50 dark:bg-red-950/10' : ''}`}
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{obl.title}</p>
+                          <Badge variant="outline" className="text-[10px]">{obl.obligation_type.replace(/_/g, ' ')}</Badge>
+                          {isOverdue && (
+                            <Badge variant="destructive" className="text-[10px]">
+                              <AlertTriangle className="h-2.5 w-2.5 mr-0.5" />
+                              OVERDUE
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{(obl as any).account?.name}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className={`text-sm font-medium ${isOverdue ? 'text-red-600' : ''}`}>
+                          {new Date(obl.due_date).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Preview Dialog */}
