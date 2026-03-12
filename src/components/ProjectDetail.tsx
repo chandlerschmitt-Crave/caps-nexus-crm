@@ -24,6 +24,8 @@ import { PropertyForm } from '@/components/forms/PropertyForm';
 import { DealForm } from '@/components/forms/DealForm';
 import { ConstructionTab } from '@/components/construction/ConstructionTab';
 import { VoltQoreSiteMetricsTab } from '@/components/voltqore/VoltQoreSiteMetricsTab';
+import { CapitalStackTab } from '@/components/capital/CapitalStackTab';
+import { FinancialReturnsTab } from '@/components/capital/FinancialReturnsTab';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectDetailProps {
@@ -328,10 +330,12 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
 
         <div className="mt-6">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className={`grid w-full ${project.vertical === 'VoltQore' ? 'grid-cols-5' : 'grid-cols-4'}`}>
+            <TabsList className="flex flex-wrap w-full h-auto gap-1">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="properties">Properties</TabsTrigger>
               <TabsTrigger value="deals">Deals</TabsTrigger>
+              <TabsTrigger value="capital-stack">Capital Stack</TabsTrigger>
+              <TabsTrigger value="financials">Returns</TabsTrigger>
               <TabsTrigger value="construction">Construction</TabsTrigger>
               {project.vertical === 'VoltQore' && (
                 <TabsTrigger value="site-metrics">Site Metrics</TabsTrigger>
@@ -709,6 +713,14 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
 
             <TabsContent value="construction" className="mt-6">
               <ConstructionTab projectId={projectId!} />
+            </TabsContent>
+
+            <TabsContent value="capital-stack" className="mt-6">
+              <CapitalStackTab projectId={projectId!} />
+            </TabsContent>
+
+            <TabsContent value="financials" className="mt-6">
+              <FinancialReturnsTab projectId={projectId!} />
             </TabsContent>
 
             {project.vertical === 'VoltQore' && (

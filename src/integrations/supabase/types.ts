@@ -186,6 +186,77 @@ export type Database = {
           },
         ]
       }
+      capital_stacks: {
+        Row: {
+          called_amount: number | null
+          committed_amount: number | null
+          created_at: string | null
+          gp_split_above_hurdle_pct: number | null
+          id: string
+          interest_rate_pct: number | null
+          layer: string
+          lp_split_above_hurdle_pct: number | null
+          ltc_pct: number | null
+          ltv_pct: number | null
+          maturity_date: string | null
+          notes: string | null
+          preferred_return_pct: number | null
+          project_id: string
+          promote_pct: number | null
+          provider_name: string | null
+          sort_order: number | null
+          uncalled_amount: number | null
+        }
+        Insert: {
+          called_amount?: number | null
+          committed_amount?: number | null
+          created_at?: string | null
+          gp_split_above_hurdle_pct?: number | null
+          id?: string
+          interest_rate_pct?: number | null
+          layer: string
+          lp_split_above_hurdle_pct?: number | null
+          ltc_pct?: number | null
+          ltv_pct?: number | null
+          maturity_date?: string | null
+          notes?: string | null
+          preferred_return_pct?: number | null
+          project_id: string
+          promote_pct?: number | null
+          provider_name?: string | null
+          sort_order?: number | null
+          uncalled_amount?: number | null
+        }
+        Update: {
+          called_amount?: number | null
+          committed_amount?: number | null
+          created_at?: string | null
+          gp_split_above_hurdle_pct?: number | null
+          id?: string
+          interest_rate_pct?: number | null
+          layer?: string
+          lp_split_above_hurdle_pct?: number | null
+          ltc_pct?: number | null
+          ltv_pct?: number | null
+          maturity_date?: string | null
+          notes?: string | null
+          preferred_return_pct?: number | null
+          project_id?: string
+          promote_pct?: number | null
+          provider_name?: string | null
+          sort_order?: number | null
+          uncalled_amount?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "capital_stacks_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       change_orders: {
         Row: {
           approved_at: string | null
@@ -1462,6 +1533,92 @@ export type Database = {
             columns: ["package_id"]
             isOneToOne: false
             referencedRelation: "construction_packages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_financials: {
+        Row: {
+          actual_irr_pct: number | null
+          actual_noi_to_date: number | null
+          capital_deployed_pct: number | null
+          dscr: number | null
+          exit_date_projected: string | null
+          exit_strategy: string | null
+          hold_period_years: number | null
+          id: string
+          notes: string | null
+          project_id: string
+          projected_equity_multiple: number | null
+          projected_irr_pct: number | null
+          projected_noi: number | null
+          projected_yield_on_cost_pct: number | null
+          target_close_date: string | null
+          target_equity_multiple: number | null
+          target_irr_pct: number | null
+          target_noi: number | null
+          target_yield_on_cost_pct: number | null
+          total_debt_raised: number | null
+          total_equity_raised: number | null
+          total_project_cost: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          actual_irr_pct?: number | null
+          actual_noi_to_date?: number | null
+          capital_deployed_pct?: number | null
+          dscr?: number | null
+          exit_date_projected?: string | null
+          exit_strategy?: string | null
+          hold_period_years?: number | null
+          id?: string
+          notes?: string | null
+          project_id: string
+          projected_equity_multiple?: number | null
+          projected_irr_pct?: number | null
+          projected_noi?: number | null
+          projected_yield_on_cost_pct?: number | null
+          target_close_date?: string | null
+          target_equity_multiple?: number | null
+          target_irr_pct?: number | null
+          target_noi?: number | null
+          target_yield_on_cost_pct?: number | null
+          total_debt_raised?: number | null
+          total_equity_raised?: number | null
+          total_project_cost?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          actual_irr_pct?: number | null
+          actual_noi_to_date?: number | null
+          capital_deployed_pct?: number | null
+          dscr?: number | null
+          exit_date_projected?: string | null
+          exit_strategy?: string | null
+          hold_period_years?: number | null
+          id?: string
+          notes?: string | null
+          project_id?: string
+          projected_equity_multiple?: number | null
+          projected_irr_pct?: number | null
+          projected_noi?: number | null
+          projected_yield_on_cost_pct?: number | null
+          target_close_date?: string | null
+          target_equity_multiple?: number | null
+          target_irr_pct?: number | null
+          target_noi?: number | null
+          target_yield_on_cost_pct?: number | null
+          total_debt_raised?: number | null
+          total_equity_raised?: number | null
+          total_project_cost?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_financials_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: true
+            referencedRelation: "projects"
             referencedColumns: ["id"]
           },
         ]
