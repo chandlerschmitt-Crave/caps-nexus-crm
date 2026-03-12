@@ -8,6 +8,7 @@ import { GuidePanel } from '@/components/dashboard/GuidePanel';
 import { DailyBrief } from '@/components/dashboard/DailyBrief';
 import { VoltQorePortfolioCard } from '@/components/dashboard/VoltQorePortfolioCard';
 import { PortfolioFinancialSummary } from '@/components/dashboard/PortfolioFinancialSummary';
+import { InvestorObligationsWidget } from '@/components/dashboard/InvestorObligationsWidget';
 
 interface InvestorDeal {
   id: string;
