@@ -10,7 +10,7 @@ import { Separator } from '@/components/ui/separator';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { Send, Clock, Settings, History, Eye, Mail } from 'lucide-react';
+import { Send, Clock, Settings, History, Eye, Mail, Calendar, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   Dialog,
@@ -36,6 +36,15 @@ interface RecapLog {
   stats: any;
   status: string;
   error_message: string | null;
+}
+
+interface UpcomingObligation {
+  id: string;
+  title: string;
+  obligation_type: string;
+  due_date: string;
+  status: string;
+  account?: { name: string } | null;
 }
 
 export default function RecapSettings() {
