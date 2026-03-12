@@ -29,6 +29,7 @@ import { ProjectActivitiesTab } from '@/components/project/ProjectActivitiesTab'
 import { ProjectDocumentsTab } from '@/components/project/ProjectDocumentsTab';
 import { ProjectOverviewCard } from '@/components/project/ProjectOverviewCard';
 import { Notes } from '@/components/Notes';
+import { CycleBadge } from '@/components/ui/cycle-badge';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectDetailProps {
