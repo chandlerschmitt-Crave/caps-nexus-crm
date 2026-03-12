@@ -51,7 +51,31 @@ export default function Projects() {
   const filteredProjects = activeVertical === 'all'
     ? projects
     : projects.filter(p => p.vertical === activeVertical);
-...
+
+  const getStageColor = (stage: string) => {
+    const colors: Record<string, string> = {
+      Ideation: 'bg-gray-100 text-gray-800',
+      'Pre-Dev': 'bg-blue-100 text-blue-800',
+      Raising: 'bg-yellow-100 text-yellow-800',
+      Entitlements: 'bg-orange-100 text-orange-800',
+      Construction: 'bg-purple-100 text-purple-800',
+      Stabilization: 'bg-green-100 text-green-800',
+      Exit: 'bg-red-100 text-red-800',
+      Site_Identified: 'bg-gray-100 text-gray-800',
+      Underwriting: 'bg-blue-100 text-blue-800',
+      LOI_Ground_Lease: 'bg-yellow-100 text-yellow-800',
+      Permits: 'bg-orange-100 text-orange-800',
+      Incentive_Applications: 'bg-cyan-100 text-cyan-800',
+      Shovel_Ready: 'bg-lime-100 text-lime-800',
+      Energized: 'bg-emerald-100 text-emerald-800',
+      Stabilized_Operations: 'bg-green-100 text-green-800',
+    };
+    return colors[stage] || 'bg-gray-100 text-gray-800';
+  };
+
+  return (
+    <Layout>
+      <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
@@ -110,6 +134,11 @@ export default function Projects() {
                       <Badge className={`text-xs ${getStageColor(project.stage)}`}>
                         {project.stage}
                       </Badge>
+                      {project.vertical && (
+                        <Badge variant="outline" className="text-xs">
+                          {project.vertical.replace('_', ' ')}
+                        </Badge>
+                      )}
                     </div>
                   </div>
                 </div>
