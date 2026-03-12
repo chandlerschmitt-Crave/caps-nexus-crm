@@ -245,6 +245,8 @@ export default function Dashboard() {
           </CardContent>
         </Card>
 
+        <PortfolioFinancialSummary />
+
         <GuidePanel />
       </div>
     </Layout>
