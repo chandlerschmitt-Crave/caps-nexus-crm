@@ -328,11 +328,14 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
 
         <div className="mt-6">
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-4">
+            <TabsList className={`grid w-full ${project.vertical === 'VoltQore' ? 'grid-cols-5' : 'grid-cols-4'}`}>
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="properties">Properties</TabsTrigger>
               <TabsTrigger value="deals">Deals</TabsTrigger>
               <TabsTrigger value="construction">Construction</TabsTrigger>
+              {project.vertical === 'VoltQore' && (
+                <TabsTrigger value="site-metrics">Site Metrics</TabsTrigger>
+              )}
             </TabsList>
 
             <TabsContent value="overview" className="mt-6 space-y-6">
