@@ -189,8 +189,39 @@ export function ProjectForm({ open, onOpenChange, onSuccess }: ProjectFormProps)
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="AI_Data_Center">AI Data Center</SelectItem>
+                        <SelectItem value="EV_Charging">EV Charging</SelectItem>
                         <SelectItem value="Luxury_Res">Luxury Residential</SelectItem>
                         <SelectItem value="Tokenized_Fund">Tokenized Fund</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="vertical"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Vertical</FormLabel>
+                    <Select onValueChange={(v) => {
+                      field.onChange(v);
+                      if (v === 'VoltQore') {
+                        form.setValue('stage', 'Site_Identified');
+                      } else {
+                        form.setValue('stage', 'Ideation');
+                      }
+                    }} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select vertical" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {VERTICALS.map(v => (
+                          <SelectItem key={v} value={v}>{v.replace(/_/g, ' ')}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -225,13 +256,9 @@ export function ProjectForm({ open, onOpenChange, onSuccess }: ProjectFormProps)
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="Ideation">Ideation</SelectItem>
-                        <SelectItem value="Pre-Dev">Pre-Dev</SelectItem>
-                        <SelectItem value="Raising">Raising</SelectItem>
-                        <SelectItem value="Entitlements">Entitlements</SelectItem>
-                        <SelectItem value="Construction">Construction</SelectItem>
-                        <SelectItem value="Stabilization">Stabilization</SelectItem>
-                        <SelectItem value="Exit">Exit</SelectItem>
+                        {stages.map(s => (
+                          <SelectItem key={s} value={s}>{s.replace(/_/g, ' ')}</SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />
