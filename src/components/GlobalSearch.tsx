@@ -72,7 +72,7 @@ export function GlobalSearch() {
     contacts.data?.forEach(c => r.push({ id: c.id, type: 'Contact', name: `${c.first_name} ${c.last_name}`, summary: c.email || '', icon: UserCircle }));
     deals.data?.forEach(d => r.push({ id: d.id, type: 'Deal', name: d.name, summary: `${d.stage} · ${d.instrument}`, icon: Briefcase }));
     tasks.data?.forEach(t => r.push({ id: t.id, type: 'Task', name: t.subject, summary: t.status?.replace(/_/g, ' ') || '', icon: ListTodo }));
-    parcels.data?.forEach(p => r.push({ id: p.id, type: 'Parcel', name: p.name || p.address || 'Parcel', summary: [p.city, p.state].filter(Boolean).join(', '), icon: MapPin }));
+    
     compliance.data?.forEach(c => r.push({ id: c.id, type: 'Compliance', name: c.title, summary: `${c.item_type} · ${c.status}`, icon: Shield }));
     decisions.data?.forEach(d => r.push({ id: d.id, type: 'Decision', name: d.title, summary: d.decision_type, icon: BookOpen }));
 

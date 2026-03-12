@@ -83,14 +83,6 @@ export function GuidePanel() {
       contextInfo: contextData.activeProjects > 0 ? `${contextData.activeProjects} active project${contextData.activeProjects !== 1 ? 's' : ''}` : undefined,
     },
     {
-      title: 'Prospecting',
-      subtitle: 'Find new opportunities before anyone else.',
-      description: 'Scan land listings, enrich power + fiber data, score sites, and move high-potential parcels straight into the deal pipeline.',
-      action: 'Open Prospecting',
-      route: '/prospecting',
-      icon: MapPin,
-    },
-    {
       title: 'Pipeline',
       subtitle: 'Deals in motion.',
       description: 'From early conversations to closing capital, track every negotiation, touchpoint, and investor milestone.',
