@@ -2,7 +2,7 @@ import { ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
-import { LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin, Mail } from 'lucide-react';
+import { LayoutDashboard, Briefcase, Users, FolderKanban, ListTodo, LogOut, Home, UserCircle, TrendingUp, MapPin, Mail, Shield, BookOpen } from 'lucide-react';
 import capsCapitalLogo from '@/assets/caps-capital-logo.jpg';
 
 interface LayoutProps {
@@ -23,6 +23,8 @@ export function Layout({ children }: LayoutProps) {
     { name: 'Properties', href: '/properties', icon: Home },
     { name: 'Tasks', href: '/tasks', icon: ListTodo },
     { name: 'Prospecting', href: '/land-intelligence', icon: MapPin },
+    { name: 'Compliance', href: '/compliance', icon: Shield },
+    { name: 'Decisions', href: '/decisions', icon: BookOpen },
     { name: 'Recap', href: '/recap-settings', icon: Mail },
   ];
 

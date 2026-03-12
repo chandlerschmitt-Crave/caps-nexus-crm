@@ -16,6 +16,8 @@ import Properties from "./pages/Properties";
 import Tasks from "./pages/Tasks";
 import LandIntelligence from "./pages/LandIntelligence";
 import RecapSettings from "./pages/RecapSettings";
+import Compliance from "./pages/Compliance";
+import DecisionLog from "./pages/DecisionLog";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -107,6 +109,22 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <RecapSettings />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/compliance"
+              element={
+                <ProtectedRoute>
+                  <Compliance />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/decisions"
+              element={
+                <ProtectedRoute>
+                  <DecisionLog />
                 </ProtectedRoute>
               }
             />

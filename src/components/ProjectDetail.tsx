@@ -26,6 +26,7 @@ import { ConstructionTab } from '@/components/construction/ConstructionTab';
 import { VoltQoreSiteMetricsTab } from '@/components/voltqore/VoltQoreSiteMetricsTab';
 import { CapitalStackTab } from '@/components/capital/CapitalStackTab';
 import { FinancialReturnsTab } from '@/components/capital/FinancialReturnsTab';
+import { ProjectDecisionLogTab } from '@/components/project/ProjectDecisionLogTab';
 import { formatCurrency } from '@/lib/formatters';
 
 interface ProjectDetailProps {
@@ -340,6 +341,7 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
               {project.vertical === 'VoltQore' && (
                 <TabsTrigger value="site-metrics">Site Metrics</TabsTrigger>
               )}
+              <TabsTrigger value="decisions">Decisions</TabsTrigger>
             </TabsList>
 
             <TabsContent value="overview" className="mt-6 space-y-6">
@@ -728,6 +730,11 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
                 <VoltQoreSiteMetricsTab projectId={projectId!} />
               </TabsContent>
             )}
+
+            <TabsContent value="decisions" className="mt-6">
+              <ProjectDecisionLogTab projectId={projectId!} />
+            </TabsContent>
+
           </Tabs>
         </div>
 

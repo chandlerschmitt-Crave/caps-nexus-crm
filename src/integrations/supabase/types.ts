@@ -420,6 +420,78 @@ export type Database = {
           },
         ]
       }
+      compliance_items: {
+        Row: {
+          assigned_to_user_id: string | null
+          completed_date: string | null
+          created_at: string | null
+          description: string | null
+          document_url: string | null
+          due_date: string
+          filing_authority: string | null
+          id: string
+          item_type: string
+          jurisdiction: string | null
+          notes: string | null
+          project_id: string | null
+          reminder_days_before: number | null
+          status: string
+          title: string
+          vertical: string | null
+        }
+        Insert: {
+          assigned_to_user_id?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          description?: string | null
+          document_url?: string | null
+          due_date: string
+          filing_authority?: string | null
+          id?: string
+          item_type: string
+          jurisdiction?: string | null
+          notes?: string | null
+          project_id?: string | null
+          reminder_days_before?: number | null
+          status?: string
+          title: string
+          vertical?: string | null
+        }
+        Update: {
+          assigned_to_user_id?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          description?: string | null
+          document_url?: string | null
+          due_date?: string
+          filing_authority?: string | null
+          id?: string
+          item_type?: string
+          jurisdiction?: string | null
+          notes?: string | null
+          project_id?: string | null
+          reminder_days_before?: number | null
+          status?: string
+          title?: string
+          vertical?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_items_assigned_to_user_id_fkey"
+            columns: ["assigned_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "compliance_items_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       construction_files: {
         Row: {
           id: string
@@ -618,6 +690,76 @@ export type Database = {
             columns: ["project_id"]
             isOneToOne: false
             referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      decision_log: {
+        Row: {
+          created_at: string | null
+          decision_date: string
+          decision_made: string
+          decision_type: string
+          id: string
+          made_by_user_id: string | null
+          outcome: string | null
+          project_id: string | null
+          rationale: string | null
+          related_investor_id: string | null
+          tags: string[] | null
+          title: string
+          vertical: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          decision_date?: string
+          decision_made: string
+          decision_type: string
+          id?: string
+          made_by_user_id?: string | null
+          outcome?: string | null
+          project_id?: string | null
+          rationale?: string | null
+          related_investor_id?: string | null
+          tags?: string[] | null
+          title: string
+          vertical?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          decision_date?: string
+          decision_made?: string
+          decision_type?: string
+          id?: string
+          made_by_user_id?: string | null
+          outcome?: string | null
+          project_id?: string | null
+          rationale?: string | null
+          related_investor_id?: string | null
+          tags?: string[] | null
+          title?: string
+          vertical?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "decision_log_made_by_user_id_fkey"
+            columns: ["made_by_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decision_log_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "decision_log_related_investor_id_fkey"
+            columns: ["related_investor_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
         ]

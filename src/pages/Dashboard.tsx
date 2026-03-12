@@ -9,6 +9,7 @@ import { DailyBrief } from '@/components/dashboard/DailyBrief';
 import { VoltQorePortfolioCard } from '@/components/dashboard/VoltQorePortfolioCard';
 import { PortfolioFinancialSummary } from '@/components/dashboard/PortfolioFinancialSummary';
 import { InvestorObligationsWidget } from '@/components/dashboard/InvestorObligationsWidget';
+import { ComplianceWidget } from '@/components/dashboard/ComplianceWidget';
 
 interface InvestorDeal {
   id: string;
@@ -248,7 +249,10 @@ export default function Dashboard() {
 
         <PortfolioFinancialSummary />
 
-        <InvestorObligationsWidget />
+        <div className="grid gap-4 md:grid-cols-2">
+          <InvestorObligationsWidget />
+          <ComplianceWidget />
+        </div>
 
         <GuidePanel />
       </div>
