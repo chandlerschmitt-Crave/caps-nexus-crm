@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { FolderKanban, MapPin, DollarSign, Plus } from 'lucide-react';
 import { ProjectForm } from '@/components/forms/ProjectForm';
 import { ProjectDetail } from '@/components/ProjectDetail';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 interface Project {
   id: string;
@@ -15,14 +16,24 @@ interface Project {
   market: string | null;
   stage: string;
   est_total_cost: number | null;
+  vertical: string | null;
   account?: { name: string };
 }
+
+const VERTICALS = [
+  { value: 'all', label: 'All' },
+  { value: 'TerraQore', label: 'TerraQore' },
+  { value: 'VoltQore', label: 'VoltQore' },
+  { value: 'Malibu_Luxury_Estates', label: 'Malibu Luxury Estates' },
+  { value: 'Digital_Assets', label: 'Digital Assets' },
+];
 
 export default function Projects() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [formOpen, setFormOpen] = useState(false);
   const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
+  const [activeVertical, setActiveVertical] = useState('all');
 
   useEffect(() => {
     loadProjects();
@@ -37,22 +48,10 @@ export default function Projects() {
     setProjects(data || []);
   };
 
-  const getStageColor = (stage: string) => {
-    const colors: Record<string, string> = {
-      Ideation: 'bg-gray-100 text-gray-800',
-      'Pre-Dev': 'bg-blue-100 text-blue-800',
-      Raising: 'bg-yellow-100 text-yellow-800',
-      Entitlements: 'bg-orange-100 text-orange-800',
-      Construction: 'bg-purple-100 text-purple-800',
-      Stabilization: 'bg-green-100 text-green-800',
-      Exit: 'bg-red-100 text-red-800',
-    };
-    return colors[stage] || 'bg-gray-100 text-gray-800';
-  };
-
-  return (
-    <Layout>
-      <div className="space-y-6">
+  const filteredProjects = activeVertical === 'all'
+    ? projects
+    : projects.filter(p => p.vertical === activeVertical);
+...
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Projects</h1>
@@ -65,6 +64,14 @@ export default function Projects() {
             Add Project
           </Button>
         </div>
+
+        <Tabs value={activeVertical} onValueChange={setActiveVertical}>
+          <TabsList>
+            {VERTICALS.map(v => (
+              <TabsTrigger key={v.value} value={v.value}>{v.label}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
         <ProjectForm 
           open={formOpen} 
