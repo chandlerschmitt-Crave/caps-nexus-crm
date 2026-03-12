@@ -6,82 +6,111 @@ import { Button } from '@/components/ui/button';
 import { AccountForm } from '@/components/forms/AccountForm';
 import { AccountDetail } from '@/components/AccountDetail';
 import { supabase } from '@/integrations/supabase/client';
-import { Building2, MapPin, Phone, Globe, Plus, Users, DollarSign } from 'lucide-react';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+import { Building2, Plus, DollarSign, AlertTriangle, Calendar } from 'lucide-react';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { formatCurrency } from '@/lib/formatters';
+
+interface Obligation {
+  id: string;
+  account_id: string;
+  due_date: string;
+  status: string;
+}
 
 interface Investor {
   id: string;
   name: string;
   type_of_account: string | null;
   investor_status: string | null;
+  investor_tier: string | null;
+  total_committed_capital: number | null;
+  total_called_capital: number | null;
+  total_distributed_capital: number | null;
+  relationship_owner_user_id: string | null;
+  next_report_due_at: string | null;
+  last_report_sent_at: string | null;
+  capital_invested: number | null;
   city: string | null;
   state: string | null;
-  country: string | null;
-  phone: string | null;
-  website: string | null;
-  notes: string | null;
-  capital_invested: number | null;
-  _count?: { contacts: number };
 }
+
+const OBLIGATION_FILTERS = [
+  { value: 'all', label: 'All' },
+  { value: 'overdue', label: 'Overdue' },
+  { value: 'due_week', label: 'Due This Week' },
+  { value: 'due_month', label: 'Due This Month' },
+  { value: 'clear', label: 'All Clear' },
+];
 
 export default function Investors() {
   const [investors, setInvestors] = useState<Investor[]>([]);
+  const [obligations, setObligations] = useState<Obligation[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [selectedInvestorId, setSelectedInvestorId] = useState<string | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
-  const [totalCapital, setTotalCapital] = useState(0);
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [obligationFilter, setObligationFilter] = useState('all');
 
   useEffect(() => {
-    loadInvestors();
+    loadData();
   }, []);
 
-  const loadInvestors = async () => {
-    const { data } = await supabase
-      .from('accounts')
-      .select('*')
-      .in('type_of_account', ['Investor', 'Fund', 'HoldCo'])
-      .order('name');
-
-    // Get contact counts for each investor
-    if (data) {
-      const investorsWithCounts = await Promise.all(
-        data.map(async (investor) => {
-          const { count } = await supabase
-            .from('contacts')
-            .select('*', { count: 'exact', head: true })
-            .eq('account_id', investor.id);
-          
-          return {
-            ...investor,
-            _count: { contacts: count || 0 }
-          };
-        })
-      );
-      setInvestors(investorsWithCounts);
-      
-      // Calculate total capital invested
-      const total = investorsWithCounts.reduce((sum, inv) => 
-        sum + (inv.capital_invested || 0), 0
-      );
-      setTotalCapital(total);
-    }
+  const loadData = async () => {
+    const [invRes, oblRes] = await Promise.all([
+      supabase
+        .from('accounts')
+        .select('*')
+        .in('type_of_account', ['Investor', 'Fund', 'HoldCo'])
+        .order('name'),
+      supabase
+        .from('investor_obligations' as any)
+        .select('id, account_id, due_date, status')
+        .neq('status', 'Completed'),
+    ]);
+    setInvestors(invRes.data || []);
+    setObligations((oblRes.data as any) || []);
   };
 
-  const handleInvestorClick = (investorId: string) => {
-    setSelectedInvestorId(investorId);
-    setDetailOpen(true);
+  const now = new Date();
+  const in7 = new Date(now.getTime() + 7 * 86400000);
+  const in14 = new Date(now.getTime() + 14 * 86400000);
+  const in30 = new Date(now.getTime() + 30 * 86400000);
+
+  const getInvestorObligations = (accountId: string) => obligations.filter(o => o.account_id === accountId);
+
+  const hasOverdue = (accountId: string) => getInvestorObligations(accountId).some(o => new Date(o.due_date) < now);
+  const hasDueThisWeek = (accountId: string) => getInvestorObligations(accountId).some(o => {
+    const d = new Date(o.due_date);
+    return d >= now && d <= in7;
+  });
+  const hasDueThisMonth = (accountId: string) => getInvestorObligations(accountId).some(o => {
+    const d = new Date(o.due_date);
+    return d >= now && d <= in30;
+  });
+
+  const nextDue = (accountId: string) => {
+    const obs = getInvestorObligations(accountId).sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+    return obs[0] || null;
   };
 
-  const filteredInvestors = statusFilter === 'all' 
-    ? investors 
-    : investors.filter(inv => inv.investor_status === statusFilter);
+  const dueDateColor = (dateStr: string | null) => {
+    if (!dateStr) return '';
+    const d = new Date(dateStr);
+    if (d < now) return 'text-red-600 font-bold';
+    if (d <= in7) return 'text-red-500';
+    if (d <= in14) return 'text-amber-500';
+    return 'text-muted-foreground';
+  };
+
+  const filteredInvestors = investors.filter(inv => {
+    if (obligationFilter === 'all') return true;
+    if (obligationFilter === 'overdue') return hasOverdue(inv.id);
+    if (obligationFilter === 'due_week') return hasDueThisWeek(inv.id);
+    if (obligationFilter === 'due_month') return hasDueThisMonth(inv.id);
+    if (obligationFilter === 'clear') return !hasOverdue(inv.id) && !hasDueThisWeek(inv.id);
+    return true;
+  });
+
+  const totalCommitted = investors.reduce((s, i) => s + (Number(i.total_committed_capital) || Number(i.capital_invested) || 0), 0);
 
   return (
     <Layout>
@@ -89,54 +118,53 @@ export default function Investors() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Investors</h1>
-            <p className="text-muted-foreground">Manage investor relationships</p>
+            <p className="text-muted-foreground">Manage investor relationships & obligations</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-[200px] bg-background">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent className="bg-popover z-50">
-                <SelectItem value="all">All Statuses</SelectItem>
-                <SelectItem value="In_Conversation">In Conversation</SelectItem>
-                <SelectItem value="Discussing_Terms">Discussing Terms</SelectItem>
-                <SelectItem value="Closing_Signatures">Closing Signatures</SelectItem>
-                <SelectItem value="Active_Investor">Active Investor</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button onClick={() => setDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Investor
-            </Button>
-          </div>
+          <Button onClick={() => setDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Investor
+          </Button>
         </div>
 
-        {/* Total Capital Invested Card */}
+        {/* Summary */}
         <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <DollarSign className="h-5 w-5 text-primary" />
-              Total Invested Capital
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-3xl font-bold">
-              ${totalCapital.toLocaleString()}
-            </p>
+          <CardContent className="pt-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-xs text-muted-foreground">Total Committed</p>
+                <p className="text-2xl font-bold">{formatCurrency(totalCommitted)}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Active Investors</p>
+                <p className="text-2xl font-bold">{investors.length}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1"><AlertTriangle className="h-3 w-3 text-red-500" /> Overdue</p>
+                <p className="text-2xl font-bold text-red-600">{obligations.filter(o => new Date(o.due_date) < now).length}</p>
+              </div>
+              <div>
+                <p className="text-xs text-muted-foreground">Due Next 7 Days</p>
+                <p className="text-2xl font-bold text-amber-600">{obligations.filter(o => { const d = new Date(o.due_date); return d >= now && d <= in7; }).length}</p>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
-        <AccountForm
-          open={dialogOpen}
-          onOpenChange={setDialogOpen}
-          onSuccess={loadInvestors}
-        />
+        {/* Obligation Filter */}
+        <Tabs value={obligationFilter} onValueChange={setObligationFilter}>
+          <TabsList>
+            {OBLIGATION_FILTERS.map(f => (
+              <TabsTrigger key={f.value} value={f.value}>{f.label}</TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
 
+        <AccountForm open={dialogOpen} onOpenChange={setDialogOpen} onSuccess={loadData} />
         <AccountDetail
           accountId={selectedInvestorId}
           open={detailOpen}
           onOpenChange={setDetailOpen}
-          onRefresh={loadInvestors}
+          onRefresh={loadData}
         />
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -144,105 +172,68 @@ export default function Investors() {
             <Card className="col-span-full">
               <CardContent className="flex flex-col items-center justify-center py-12 text-center">
                 <Building2 className="h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-lg font-medium mb-2">
-                  {statusFilter === 'all' ? 'No investors yet' : 'No investors with this status'}
-                </p>
-                <p className="text-muted-foreground mb-4">
-                  {statusFilter === 'all' 
-                    ? 'Add your first investor to start tracking relationships'
-                    : 'Try changing the status filter'}
-                </p>
-                {statusFilter === 'all' && (
-                  <Button onClick={() => setDialogOpen(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Investor
-                  </Button>
-                )}
+                <p className="text-lg font-medium mb-2">No investors match this filter</p>
               </CardContent>
             </Card>
           ) : (
-            filteredInvestors.map((investor) => (
-              <Card 
-                key={investor.id} 
-                className="hover:shadow-md transition-shadow cursor-pointer"
-                onClick={() => handleInvestorClick(investor.id)}
-              >
-                <CardHeader>
-                  <div className="flex items-start gap-3">
-                    <Building2 className="h-5 w-5 text-primary mt-1" />
-                    <div className="flex-1">
-                      <CardTitle className="text-base mb-2">
-                        {investor.name}
-                      </CardTitle>
-                      <div className="flex flex-wrap gap-2">
-                        {investor.type_of_account && (
-                          <Badge variant="secondary" className="text-xs">
-                            {investor.type_of_account}
-                          </Badge>
-                        )}
-                        {investor.investor_status && (
-                          <Badge 
-                            variant={investor.investor_status === 'Active_Investor' ? 'default' : 'outline'} 
-                            className="text-xs"
-                          >
-                            {investor.investor_status.replace(/_/g, ' ')}
-                          </Badge>
-                        )}
+            filteredInvestors.map((investor) => {
+              const isOverdue = hasOverdue(investor.id);
+              const next = nextDue(investor.id);
+              return (
+                <Card
+                  key={investor.id}
+                  className={`hover:shadow-md transition-shadow cursor-pointer ${isOverdue && obligationFilter === 'overdue' ? 'border-red-300 bg-red-50/50 dark:bg-red-950/10' : ''}`}
+                  onClick={() => { setSelectedInvestorId(investor.id); setDetailOpen(true); }}
+                >
+                  <CardHeader className="pb-2">
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-base">{investor.name}</CardTitle>
+                        <div className="flex flex-wrap gap-1.5 mt-1.5">
+                          {investor.type_of_account && <Badge variant="secondary" className="text-xs">{investor.type_of_account}</Badge>}
+                          {investor.investor_tier && <Badge variant="outline" className="text-xs">{investor.investor_tier.replace(/_/g, ' ')}</Badge>}
+                          {investor.investor_status && (
+                            <Badge variant={investor.investor_status === 'Active_Investor' ? 'default' : 'outline'} className="text-xs">
+                              {investor.investor_status.replace(/_/g, ' ')}
+                            </Badge>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  {(investor.city || investor.state) && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <MapPin className="h-4 w-4" />
-                      <span>
-                        {investor.city && investor.state 
-                          ? `${investor.city}, ${investor.state}`
-                          : investor.city || investor.state}
-                        {investor.country && ` (${investor.country})`}
-                      </span>
+                  </CardHeader>
+                  <CardContent className="space-y-2 text-sm">
+                    <div className="grid grid-cols-3 gap-2">
+                      <div>
+                        <p className="text-xs text-muted-foreground">Committed</p>
+                        <p className="font-medium">{formatCurrency(Number(investor.total_committed_capital) || Number(investor.capital_invested) || 0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Called</p>
+                        <p className="font-medium">{formatCurrency(Number(investor.total_called_capital) || 0)}</p>
+                      </div>
+                      <div>
+                        <p className="text-xs text-muted-foreground">Distributed</p>
+                        <p className="font-medium">{formatCurrency(Number(investor.total_distributed_capital) || 0)}</p>
+                      </div>
                     </div>
-                  )}
 
-                  {investor.phone && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Phone className="h-4 w-4" />
-                      <a href={`tel:${investor.phone}`} className="hover:underline">
-                        {investor.phone}
-                      </a>
-                    </div>
-                  )}
+                    {next && (
+                      <div className="flex items-center gap-1.5 pt-1 border-t">
+                        <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
+                        <span className={`text-xs ${dueDateColor(next.due_date)}`}>
+                          Next due: {new Date(next.due_date).toLocaleDateString()}
+                        </span>
+                        {isOverdue && <Badge variant="destructive" className="text-[10px] h-4 px-1">OVERDUE</Badge>}
+                      </div>
+                    )}
 
-                  {investor.website && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Globe className="h-4 w-4" />
-                      <a 
-                        href={investor.website.startsWith('http') ? investor.website : `https://${investor.website}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline text-primary truncate"
-                      >
-                        {investor.website}
-                      </a>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2 text-sm pt-2 border-t">
-                    <Users className="h-4 w-4 text-muted-foreground" />
-                    <span className="text-muted-foreground">
-                      {investor._count?.contacts || 0} contact{investor._count?.contacts !== 1 ? 's' : ''}
-                    </span>
-                  </div>
-
-                  {investor.notes && (
-                    <div className="text-sm text-muted-foreground line-clamp-2 pt-2">
-                      {investor.notes}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            ))
+                    {investor.city && (
+                      <p className="text-xs text-muted-foreground">{[investor.city, investor.state].filter(Boolean).join(', ')}</p>
+                    )}
+                  </CardContent>
+                </Card>
+              );
+            })
           )}
         </div>
       </div>
