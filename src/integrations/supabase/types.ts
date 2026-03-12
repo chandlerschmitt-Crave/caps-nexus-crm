@@ -26,10 +26,17 @@ export type Database = {
           investment_term: string | null
           investment_type: string | null
           investor_status: string | null
+          investor_tier: string | null
+          last_report_sent_at: string | null
           name: string
+          next_report_due_at: string | null
           notes: string | null
           phone: string | null
+          relationship_owner_user_id: string | null
           state: string | null
+          total_called_capital: number | null
+          total_committed_capital: number | null
+          total_distributed_capital: number | null
           type_of_account: string | null
           website: string | null
         }
@@ -44,10 +51,17 @@ export type Database = {
           investment_term?: string | null
           investment_type?: string | null
           investor_status?: string | null
+          investor_tier?: string | null
+          last_report_sent_at?: string | null
           name: string
+          next_report_due_at?: string | null
           notes?: string | null
           phone?: string | null
+          relationship_owner_user_id?: string | null
           state?: string | null
+          total_called_capital?: number | null
+          total_committed_capital?: number | null
+          total_distributed_capital?: number | null
           type_of_account?: string | null
           website?: string | null
         }
@@ -62,14 +76,29 @@ export type Database = {
           investment_term?: string | null
           investment_type?: string | null
           investor_status?: string | null
+          investor_tier?: string | null
+          last_report_sent_at?: string | null
           name?: string
+          next_report_due_at?: string | null
           notes?: string | null
           phone?: string | null
+          relationship_owner_user_id?: string | null
           state?: string | null
+          total_called_capital?: number | null
+          total_committed_capital?: number | null
+          total_distributed_capital?: number | null
           type_of_account?: string | null
           website?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "accounts_relationship_owner_user_id_fkey"
+            columns: ["relationship_owner_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       activities: {
         Row: {
@@ -847,6 +876,76 @@ export type Database = {
           zip?: string | null
         }
         Relationships: []
+      }
+      investor_obligations: {
+        Row: {
+          account_id: string
+          assigned_to_user_id: string | null
+          completed_date: string | null
+          created_at: string | null
+          document_url: string | null
+          due_date: string
+          id: string
+          notes: string | null
+          obligation_type: string
+          project_id: string | null
+          recurrence: string | null
+          status: string
+          title: string
+        }
+        Insert: {
+          account_id: string
+          assigned_to_user_id?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          document_url?: string | null
+          due_date: string
+          id?: string
+          notes?: string | null
+          obligation_type: string
+          project_id?: string | null
+          recurrence?: string | null
+          status?: string
+          title: string
+        }
+        Update: {
+          account_id?: string
+          assigned_to_user_id?: string | null
+          completed_date?: string | null
+          created_at?: string | null
+          document_url?: string | null
+          due_date?: string
+          id?: string
+          notes?: string | null
+          obligation_type?: string
+          project_id?: string | null
+          recurrence?: string | null
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "investor_obligations_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_obligations_assigned_to_user_id_fkey"
+            columns: ["assigned_to_user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "investor_obligations_project_id_fkey"
+            columns: ["project_id"]
+            isOneToOne: false
+            referencedRelation: "projects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       invoices: {
         Row: {
