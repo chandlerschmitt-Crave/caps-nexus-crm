@@ -384,7 +384,18 @@ export function AccountDetail({ accountId, open, onOpenChange, onRefresh }: Acco
           </div>
         </SheetHeader>
 
-        <div className="mt-6 space-y-6">
+        <div className="mt-6">
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="details">Details</TabsTrigger>
+              <TabsTrigger value="relationships">Relationships</TabsTrigger>
+              <TabsTrigger value="obligations">
+                <Calendar className="h-3 w-3 mr-1" />
+                Obligations
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="mt-4 space-y-6">
           {/* Account Information */}
           <Card>
             <CardHeader>
@@ -525,9 +536,9 @@ export function AccountDetail({ accountId, open, onOpenChange, onRefresh }: Acco
               )}
             </CardContent>
           </Card>
+            </TabsContent>
 
-          <Separator />
-
+            <TabsContent value="relationships" className="mt-4 space-y-6">
           {/* Contacts */}
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
@@ -692,6 +703,12 @@ export function AccountDetail({ accountId, open, onOpenChange, onRefresh }: Acco
               )}
             </CardContent>
           </Card>
+            </TabsContent>
+
+            <TabsContent value="obligations" className="mt-4">
+              <ObligationsTab accountId={accountId!} />
+            </TabsContent>
+          </Tabs>
         </div>
 
         {/* Link Dialog */}
