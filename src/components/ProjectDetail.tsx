@@ -730,6 +730,11 @@ export function ProjectDetail({ projectId, open, onOpenChange, onRefresh }: Proj
                 <VoltQoreSiteMetricsTab projectId={projectId!} />
               </TabsContent>
             )}
+
+            <TabsContent value="decisions" className="mt-6">
+              <ProjectDecisionLogTab projectId={projectId!} />
+            </TabsContent>
+            )}
           </Tabs>
         </div>
 
