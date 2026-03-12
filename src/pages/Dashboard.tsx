@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { GuidePanel } from '@/components/dashboard/GuidePanel';
 import { DailyBrief } from '@/components/dashboard/DailyBrief';
 import { VoltQorePortfolioCard } from '@/components/dashboard/VoltQorePortfolioCard';
+import { PortfolioFinancialSummary } from '@/components/dashboard/PortfolioFinancialSummary';
 
 interface InvestorDeal {
   id: string;
